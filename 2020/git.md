@@ -48,8 +48,7 @@
 
 - [本地已有的仓库推送到github](https://sword.studio/142.html)
  1. git remote add origin git@github.com:XXX/XXX.git # 设置本地的origin地址
- 2. git pull origin master --allow-unrelated-histories # 把本地仓库的变化连接到远程仓库主分支
- 3. 正常push
+ 2. git push -u origin master
 
 ## 合并
 - git merge --abort # 取消merge
