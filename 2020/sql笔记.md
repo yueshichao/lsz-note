@@ -215,3 +215,64 @@ count中使用条件
 ```sql
 select count(IF(phone != '', true, null)) from user;
 ```
+
+# Oracle笔记
+建表：JOBS
+```sql
+CREATE TABLE "HR"."JOBS" (
+  "JOB_ID" VARCHAR2(10 BYTE) NOT NULL ,
+  "JOB_TITLE" VARCHAR2(35 BYTE) NOT NULL ,
+  "MIN_SALARY" NUMBER(6) ,
+  "MAX_SALARY" NUMBER(6) 
+)
+INSERT INTO "HR"."JOBS" VALUES ('AD_PRES', 'President', '20080', '40000');
+INSERT INTO "HR"."JOBS" VALUES ('AD_VP', 'Administration Vice President', '15000', '30000');
+INSERT INTO "HR"."JOBS" VALUES ('AD_ASST', 'Administration Assistant', '3000', '6000');
+INSERT INTO "HR"."JOBS" VALUES ('FI_MGR', 'Finance Manager', '8200', '16000');
+INSERT INTO "HR"."JOBS" VALUES ('FI_ACCOUNT', 'Accountant', '4200', '9000');
+INSERT INTO "HR"."JOBS" VALUES ('AC_MGR', 'Accounting Manager', '8200', '16000');
+INSERT INTO "HR"."JOBS" VALUES ('AC_ACCOUNT', 'Public Accountant', '4200', '9000');
+INSERT INTO "HR"."JOBS" VALUES ('SA_MAN', 'Sales Manager', '10000', '20080');
+INSERT INTO "HR"."JOBS" VALUES ('SA_REP', 'Sales Representative', '6000', '12008');
+INSERT INTO "HR"."JOBS" VALUES ('PU_MAN', 'Purchasing Manager', '8000', '15000');
+INSERT INTO "HR"."JOBS" VALUES ('PU_CLERK', 'Purchasing Clerk', '2500', '5500');
+INSERT INTO "HR"."JOBS" VALUES ('ST_MAN', 'Stock Manager', '5500', '8500');
+INSERT INTO "HR"."JOBS" VALUES ('ST_CLERK', 'Stock Clerk', '2008', '5000');
+INSERT INTO "HR"."JOBS" VALUES ('SH_CLERK', 'Shipping Clerk', '2500', '5500');
+INSERT INTO "HR"."JOBS" VALUES ('IT_PROG', 'Programmer', '4000', '10000');
+INSERT INTO "HR"."JOBS" VALUES ('MK_MAN', 'Marketing Manager', '9000', '15000');
+INSERT INTO "HR"."JOBS" VALUES ('MK_REP', 'Marketing Representative', '4000', '9000');
+INSERT INTO "HR"."JOBS" VALUES ('HR_REP', 'Human Resources Representative', '4000', '9000');
+INSERT INTO "HR"."JOBS" VALUES ('PR_REP', 'Public Relations Representative', '4500', '10500');
+```
+
+- 最大薪水前5的职业
+```sql
+SELECT
+	* 
+FROM
+	( SELECT * FROM jobs ORDER BY MAX_SALARY DESC ) 
+WHERE
+	ROWNUM <= 5
+```
+
+## 分页
+- 不需要排序的分页
+```sql
+SELECT
+	tt.* 
+FROM
+	( SELECT ROWNUM rn, t.* FROM jobs t WHERE ROWNUM <= 15 ) tt 
+WHERE
+	tt.rn >= 10
+```
+
+- 需要排序的分页（先排序，再分页）
+```sql
+SELECT
+	tt.* 
+FROM
+	( SELECT ROWNUM rn, t.* FROM ( SELECT * FROM jobs ORDER BY MAX_SALARY DESC ) t WHERE ROWNUM <= 15 ) tt 
+WHERE
+	tt.rn >= 10
+```
