@@ -15,6 +15,8 @@
 - ls -lht # 当前文件夹总大小，以及各个文件的大小
 - du -sh fileName # 当前文件大小
 
+- ping 127.0.0.1 | tee ping.log # 执行任务并把输出保存到文件中
+
 ## 文本处理more、tail、grep
 
 - more test.txt | grep ">\s[a-z|0-9|.|-]*\.19[0-9]*: "
@@ -22,6 +24,12 @@
 - tail -f test.txt | grep "test"
 
 - less test.txt
+
+- awk # TODO
+
+## 任务调度
+
+- nohup command &> /dev/null # 后台执行
 
 # 系统
 
