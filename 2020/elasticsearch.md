@@ -832,13 +832,102 @@ POST /_aliases
 
 
 
+# ELK
 
+## 实战
+1. ELK套件版本：6.8.10
+2. /logs目录下存在如下日志：
+```log
+2020-07-01 09:19:31.474 [taskScheduler-2] INFO  c.XXX.XXX.base.web.audit.impl.DefaultAuditLog - User 8acf80f969b4ee8e0169b4f0fda60d67@10.65.5.72 ACCESS /XXX/XXX/data/query/bug/overall com.XXX.XXX.extension.controller.TapdBugDataController-getBugOverall,
+2020-07-01 09:19:48.615 [http-nio-8080-exec-13] INFO  c.k.c.s.s.interceptor.AccessLogInterceptor - Request[a88e8c2c15b845708d8ed0f24d39292a] URL:[http://XXX.XXX.com/XXX/XXX/story/flow/query], Protocol:[HTTP/1.1], Params:{}
+2020-07-01 09:19:48.636 [http-nio-8080-exec-15] INFO  c.k.c.s.s.interceptor.AccessLogInterceptor - Request[127f12faf8624aaa9d36d8be080ce2f3] URL:[http://XXX.XXX.com/XXX/XXX/story/flow/query], Protocol:[HTTP/1.1], Params:{"pageNo":["1"],"pageSize":["20"]}
+2020-07-01 09:19:48.644 [http-nio-8080-exec-15] INFO  com.XXX.XXX.extension.aspect.LoginInfoAspect - 登录人信息：{"accessToken":{"access_token":"XXX","refresh_token":"XXX","scope":"openid","token_type":"Bearer"},"attributes":{},"resources":[{"authority":"require","dataScope":"ALL","icon":"front", "user":{"accountNonExpired":false,"accountNonLocked":false,"code":"XXX","credentialsNonExpired":false,"deptCode":"123","deptId":"123","deptName":"XXX","deptPath":"XXX","enabled":true,"id":"XXX","isSetCascadedAndChargedDeptCodes":false,"name":"XXX","position":"JAVA开发工程师","sex":1,"status":1,"username":"XXX"}}
+2020-07-01 09:19:48.682 [http-nio-8080-exec-15] INFO  com.XXX.XXX.extension.aspect.LoginInfoAspect - 清除登录用户信息！
+```
 
+3. logstash配置文件(.conf)
+```conf
+input {
+  file {
+    path => ["/logs/*.log"]
+    start_position => "beginning"
+  }
+#stdin{}
+}
 
+filter {
+  grok {
+    patterns_dir => ["/usr/share/logstash/config/patterns"]
+    match => {
+      "message" => "%{TIMESTAMP_ISO8601:time}.+登录人信息：.+(\"user\":).+\"name\":\"%{SUFFIX_QUOTE:name}"
+    }
+  }
+  mutate {
+    remove_field => ["message"]
+  }
+  if "_grokparsefailure" in [tags] {
+    drop {}
+  }
+}
 
+output {
+  elasticsearch {
+    hosts => "http://192.168.9.3:9200"
+    index => "logs"
+  }
+#stdout {}
+}
+```
+> input标签里放要扫描的日志文件  
+fiter处理日志文本，patterns_dir放自定义正则的文件目录位置，我在此目录下放了一个文件，就一行正则`SUFFIX_QUOTE [^"]+`  
+message会包含所有日志信息，我们不需要，所以mutate.remove_field删除此字段  
+有些行会解析失败，会在数据tags字段中存在_grokparsefailure字符串，给这些日志过滤了  
+输出到es，索引为logs
 
+> 调试grok正则建议去kibana的devtool - grok debugger  
+调试logstash，可以将logstash的输入输出改成stdin、stdout，用交互式的调试  
+**以文件为数据源时，logstash不会扫描之前的日志，要重命名文件才能被logstash重新解析**
 
+4. 提前创建索引和映射
+```json
+PUT logs
 
+POST logs/doc/_mapping
+{
+  "properties": {
+    "time": {
+      "type": "date",
+      "format": "yyyy-MM-dd HH:mm:ss.SSS"
+    }
+  }
+}
+```
+> 在上面logstash的配置文件中，我指定了logs索引，默认type是doc
+
+> 不走这一步也没关系，不过在logstash里不能指定传给es的数据类型，查询时可能还要重新建立索引和映射
+
+5. 运行logstash，es保存好数据后，做个简单查询，根据name分桶，在桶内根据小时画直方图
+```json
+POST logs/doc/_search
+{
+  "aggs": {
+    "name_cate": {
+      "terms": {
+        "field": "name.keyword"
+      },
+      "aggs": {
+        "visit": {
+          "date_histogram": {
+            "field": "time",
+            "interval": "hour",
+            "format": "yyyy-MM-dd hh:mm"
+          }
+        }
+      }
+    }
+  }
+}
+```
 
 
 
