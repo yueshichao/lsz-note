@@ -895,6 +895,9 @@ PUT logs
 POST logs/doc/_mapping
 {
   "properties": {
+    "name": {
+      "type": "keyword"
+    },
     "time": {
       "type": "date",
       "format": "yyyy-MM-dd HH:mm:ss.SSS"
@@ -913,7 +916,7 @@ POST logs/doc/_search
   "aggs": {
     "name_cate": {
       "terms": {
-        "field": "name.keyword"
+        "field": "name"
       },
       "aggs": {
         "visit": {
