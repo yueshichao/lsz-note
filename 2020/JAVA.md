@@ -2,27 +2,27 @@
 > https://cyc2018.github.io/CS-Notes/#/  
 https://github.com/doocs/advanced-java
 
-- ThreadLocal原理：
-  - Thread类拥有 `ThreadLocal.ThreadLocalMap threadLocals = null;` 成员变量，信息都保存在这里
-  - `ThreadLocal<T> t = new ThreadLocal<>()` 不会产生任何与线程的关系，但在 `t.set` 时，会将自身，也就是t的引用传入此时线程的 `threadLocals` 里作为key
-  - `t.get()` 时也会将自身的hashCode作为key
+## ThreadLocal原理：
+- Thread类拥有 `ThreadLocal.ThreadLocalMap threadLocals = null;` 成员变量，信息都保存在这里
+- `ThreadLocal<T> t = new ThreadLocal<>()` 不会产生任何与线程的关系，但在 `t.set` 时，会将自身，也就是t的引用传入此时线程的 `threadLocals` 里作为key
+- `t.get()` 时也会将自身的hashCode作为key
 
-- HashMap原理：
-  - `static class Node<K,V> implements Map.Entry<K, V>` 是HashMap的内部类，（在key冲突不多时）用来存储信息，包括hash、key、value、next四个属性
-  - `transient Node<K,V>[] table;` 是HashMap实现的本质——Hash表，数组下标就是key的hashcode，数组内容就是Node对象
+## HashMap原理：
+- `static class Node<K,V> implements Map.Entry<K, V>` 是HashMap的内部类，（在key冲突不多时）用来存储信息，包括hash、key、value、next四个属性
+- `transient Node<K,V>[] table;` 是HashMap实现的本质——Hash表，数组下标就是key的hashcode，数组内容就是Node对象
 > 对象在HashMap里的位置取决于key的hashCode()以及equals()，先比较hashCode，再比较equals  
 equals不同，hashcode相同，会被认为是不同的对象。但如果equals相同，hashCode却不同，因比较流程（先hashCode再equals）则会被认为是不同的对象  
 所以我们要求重写equals，一定要重写hashCode，即保证equals相同时，hashCode一定相同
 
 > 极端情况下，如果重写对象hashCode恒等于1，HashMap也不会出问题，只是会退化成链表。当同一结点下链表长度大于等于8时，链表转化为红黑树
 
-- ConcurrentHashMap、Hashtable对比
+## ConcurrentHashMap、Hashtable对比
 首先HashMap不支持多线程环境，这俩都支持。在并发量较大时，ConcurrentHashMap表现比Hashtable更好，因为Hashtable是在put方法上加锁，而ConcurrentHashMap是在key所在的hash下标那加锁的
 
-- 序列化，实现Serializable接口
+## 序列化，实现Serializable接口
  - 自定义序列化内容：`transient`修饰，重写`writeObject`和`readObject`，由ObjectOutputStream通过反射调用
 
-- 动态代理
+## JDK动态代理
 ```java
 
 public class Main {
@@ -65,7 +65,7 @@ class ProxyHandler implements InvocationHandler {
 }
 ```
 
-- List.toArray()的类型强转
+## List.toArray()的类型强转
 ```java
 List<String> collect = Stream.of("1", "2", "3").collect(Collectors.toList());
 String[] strings = (String[])collect.toArray();// java.lang.ClassCastException: [Ljava.lang.Object; cannot be cast to [Ljava.lang.String;
@@ -85,6 +85,12 @@ String[] strings = collect.toArray(new String[collect.size()]);
 System.out.println(Arrays.toString(strings));
 ```
 
+## 重写static方法
+> 今天看Spring AOP原理，发现一个抽象类**AopProxyUtils**，没有任何类继承它，里面全是静态方法，这种方式写工具类也不错。  
+我突然想到，static方法能不能重写。
+- static方法使用类名调用，在**编译时**已经确定调用哪个方法了，所以子类可以覆写static方法，但是没有多态层面的意义
+- 成员方法的重写是多态的体现
+- 多态体现在在代码**运行时**才确定使用哪个类、哪个方法
 
 # JVM
 ## JVM模型
