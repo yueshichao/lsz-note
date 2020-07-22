@@ -16,6 +16,41 @@ equals不同，hashcode相同，会被认为是不同的对象。但如果equals
 
 > 极端情况下，如果重写对象hashCode恒等于1，HashMap也不会出问题，只是会退化成链表。当同一结点下链表长度大于等于8时，链表转化为红黑树
 
+- 使用**EntrySet**遍历HashMap
+```java
+Map<String, Integer> map = new HashMap<>();
+Set<Map.Entry<String, Integer>> entrySet = map.entrySet();
+for (Map.Entry<String, Integer> entry : entrySet) {
+    String key = entry.getKey();
+    Integer value = entry.getValue();
+}
+```
+> EntrySet继承自AbstractSet，却没有add方法，在foreach遍历时，也是在用iterator的方式遍历  
+HashMap自身实现了一个**HashIterator**，什么KeySet，ValueSet，EntrySet遍历时，都是他们自己的iterator继承自HashIterator去迭代
+他们仅自己实现了next方法（或者说HashIterator什么都给了，他们只取了自己想要的值）  
+以EntrySet的迭代器**EntryIterator**为例
+```java
+final class EntryIterator extends HashIterator
+    implements Iterator<Map.Entry<K,V>> {
+    public final Map.Entry<K,V> next() { return nextNode(); }
+}
+```
+> 而nextNode()方法，本身就是在对HashMap的底层数据结构**table数组进行遍历**，所以普遍认为EntrySet的方法遍历HashMap是最快的。
+```java
+final Node<K,V> nextNode() {
+    Node<K,V>[] t;
+    Node<K,V> e = next;
+    if (modCount != expectedModCount)
+        throw new ConcurrentModificationException();
+    if (e == null)
+        throw new NoSuchElementException();
+    if ((next = (current = e).next) == null && (t = table) != null) {
+        do {} while (index < t.length && (next = t[index++]) == null);
+    }
+    return e;
+}
+```
+
 ## ConcurrentHashMap、Hashtable对比
 首先HashMap不支持多线程环境，这俩都支持。在并发量较大时，ConcurrentHashMap表现比Hashtable更好，因为Hashtable是在put方法上加锁，而ConcurrentHashMap是在key所在的hash下标那加锁的
 
