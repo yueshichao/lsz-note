@@ -1,4 +1,5 @@
 # 版本管理git
+![git](./img/git.png)
 ## 分支
 - git branch # 查看本地分支
 
@@ -54,7 +55,7 @@
 - git merge --abort # 取消merge
 
 ## 撤销修改
-- git checkout -- fileName # 撤销未add的本地修改
+- git checkout fileName # 撤销未add的本地修改
 
 - git reset HEAD fileName # 撤销已add的本地修改
 

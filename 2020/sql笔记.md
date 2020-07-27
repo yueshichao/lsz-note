@@ -216,6 +216,27 @@ count中使用条件
 select count(IF(phone != '', true, null)) from user;
 ```
 
+### 2020-07-07
+- 下面SQL语句会使左连接失效吗？
+```sql
+select * from a
+left join b on a.id = b.id
+where b.created > 'XXXX'
+```
+> 从结果看会，会使a,b之间变成inner join
+如果想要左连接不失效，把条件放在on后面
+
+- MySQL求差集，用left join，能求出**左表-右表**的差集
+
+- count\sum区别
+  - count(条件表达式)，只要条件不为null就+1
+  - sum(条件表达式)，只有条件为true时+1
+
+- group by主键之后，同一个元组仍是可select的(MySQL 5.7)
+```sql
+select * from a group by id
+```
+
 # Oracle笔记
 建表：JOBS
 ```sql
