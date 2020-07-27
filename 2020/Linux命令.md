@@ -12,6 +12,9 @@
 - find
  - find / -name "fileName"
 
+- ls -lht # 当前文件夹总大小，以及各个文件的大小
+- du -sh fileName # 当前文件大小
+
 ## 文本处理more、tail、grep
 
 - more test.txt | grep ">\s[a-z|0-9|.|-]*\.19[0-9]*: "
