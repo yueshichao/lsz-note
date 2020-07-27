@@ -122,10 +122,11 @@ System.out.println(Arrays.toString(strings));
 
 ## 重写static方法
 > 今天看Spring AOP原理，发现一个抽象类**AopProxyUtils**，没有任何类继承它，里面全是静态方法，这种方式写工具类也不错。  
-我突然想到，static方法能不能重写。
-- static方法使用类名调用，在**编译时**已经确定调用哪个方法了，所以子类可以覆写static方法，但是没有多态层面的意义
+我突然有个疑问，static方法能不能重写？
+- static方法一般使用类名调用，在**编译时**已经确定调用哪个方法了，所以子类可以覆写static方法（并不是继承重写，可以理解为两个同名方法在不同的类里），但是没有多态层面的意义
 - 成员方法的重写是多态的体现
-- 多态体现在在代码**运行时**才确定使用哪个类、哪个方法
+- 多态体现在在代码**运行时**才确定使用哪个类、哪个方法  
+[什么叫做编译时已经确定调用哪个方法？](##静态调用、动态调用)
 
 # JVM
 ## JVM模型
@@ -135,9 +136,59 @@ System.out.println(Arrays.toString(strings));
   - 栈帧
   - 本地方法栈
   - 程序计数器 - PC
-> 一个**线程**一个**方法栈**、**程序计数器**  
-一个**方法**一个**栈帧**  
+> 一个**线程**对应一个**方法栈**、**程序计数器**  
+一个**方法**对应一个**栈帧**  
 大家共用一个**堆**
+
+## Java文件执行流程
+Java不能完全叫编译型或是解释型语言
+执行流程是： *.java* 文件编译成 *.class字节码文件* ，再通过*执行引擎*解释执行字节码，但热点代码也会被*JIT*编译成机器码。
+
+## 静态调用、动态调用
+- 静态调用是指在编译时确定调用哪个方法，如构造器、private方法、static方法都是**解析字节码阶段**确定的  
+> 字节码：*invokespecial*、*invokestatic*
+- 动态调用，有说法叫做虚方法，名字不重要，关键是**运行时**根据上下文才知道具体调用什么方法，继承重写的方法一般就是动态调用  
+> 字节码*invokevirtual*
+下面比较一下静态方法和继承来的方法调用的不同：
+先给出两个类，p()是继承重写的方法，make()是静态方法
+```java
+class Box {
+
+    public void p() {
+        System.out.println("Box private");
+    }
+    public static void make() {
+        System.out.println("Box make");
+    }
+}
+
+class Car extends Box {
+
+    public void p() {
+        System.out.println("Car private");
+    }
+
+    public static void make() {
+        System.out.println("Car make!!!");
+    }
+
+    public void f() {
+        super.make();
+        make();
+        p();
+    }
+}
+```
+
+**方法f()**的字节码信息
+```class
+ 0 invokestatic #6 <com/xxx/bean/Box.make>
+ 3 invokestatic #7 <com/xxx/bean/Car.make>
+ 6 aload_0
+ 7 invokevirtual #8 <com/xxx/bean/Car.p>
+10 return
+```
+
 
 ## JVM调试
 - 堆内存参数：初始值`-Xms`， 最大值`-Xmx`
