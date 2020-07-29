@@ -51,6 +51,81 @@ final Node<K,V> nextNode() {
 }
 ```
 
+## java.util.concurrent
+### AbstractQueuedSynchronizer
+> 队列同步器，简写AQS  
+既然是抽象类，自然是用来被继承的，J.U.C包下的很多类都继承或组合了这个类  
+抽象类主要是封装麻烦的细节，子类重写部分方法即可完成定制的类
+1. 两个内部类
+```java
+public class ConditionObject implements Condition, java.io.Serializable {}
+
+// 
+static final class Node {}
+```
+1. 被封装的方法 - **非private**且是**final**的方法
+```java
+protected final int getState();
+
+protected final void setState(int newState);
+
+protected final boolean compareAndSetState(int expect, int update);
+
+final boolean acquireQueued(final Node node, int arg);
+
+public final void acquire(int arg);
+
+public final void acquireInterruptibly(int arg);
+
+public final boolean tryAcquireNanos(int arg, long nanosTimeout);
+
+public final boolean release(int arg);
+
+public final void acquireShared(int arg);
+
+public final void acquireSharedInterruptibly(int arg);
+
+public final boolean tryAcquireSharedNanos(int arg, long nanosTimeout);
+
+public final boolean releaseShared(int arg);
+
+public final boolean hasQueuedThreads();
+
+public final boolean hasContended();
+
+public final Thread getFirstQueuedThread();
+
+public final boolean isQueued(Thread thread);
+
+final boolean apparentlyFirstQueuedIsExclusive();
+
+public final boolean hasQueuedPredecessors();
+
+public final int getQueueLength();
+
+public final Collection<Thread> getQueuedThreads();
+
+public final Collection<Thread> getExclusiveQueuedThreads();
+
+public final Collection<Thread> getSharedQueuedThreads();
+
+final boolean isOnSyncQueue(Node node);
+
+final boolean transferForSignal(Node node);
+
+final boolean transferAfterCancelledWait(Node node);
+
+final int fullyRelease(Node node);
+
+public final boolean owns(ConditionObject condition);
+
+public final boolean hasWaiters(ConditionObject condition);
+
+public final int getWaitQueueLength(ConditionObject condition);
+
+public final Collection<Thread> getWaitingThreads(ConditionObject condition);
+```
+
 ## ConcurrentHashMap、Hashtable对比
 首先HashMap不支持多线程环境，这俩都支持。在并发量较大时，ConcurrentHashMap表现比Hashtable更好，因为Hashtable是在put方法上加锁，而ConcurrentHashMap是在key所在的hash下标那加锁的
 
