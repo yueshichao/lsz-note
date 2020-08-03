@@ -2,10 +2,83 @@
 > https://cyc2018.github.io/CS-Notes/#/  
 https://github.com/doocs/advanced-java
 
-## ThreadLocal原理：
-- Thread类拥有 `ThreadLocal.ThreadLocalMap threadLocals = null;` 成员变量，信息都保存在这里
+## ThreadLocal
+### 作用与使用方法
+TODO
+
+### 原理
+- Thread类拥有 `ThreadLocal.ThreadLocalMap threadLocals = null;` 成员变量，信息都保存在这里（而非保存在ThreadLocal里）
 - `ThreadLocal<T> t = new ThreadLocal<>()` 不会产生任何与线程的关系，但在 `t.set` 时，会将自身，也就是t的引用传入此时线程的 `threadLocals` 里作为key
-- `t.get()` 时也会将自身的hashCode作为key
+```java
+public void set(T value) {
+    Thread t = Thread.currentThread();
+    ThreadLocalMap map = getMap(t);
+    if (map != null)
+        map.set(this, value);
+     else
+        createMap(t, value);
+}
+```
+- `t.get()` 时也会将自身的hashCode作为key拿到之前**保存在ThreadLocalMap**里的对象
+
+### 关于ThreadLocal的内存泄漏
+参考：  
+https://zhuanlan.zhihu.com/p/128102523  
+https://blog.csdn.net/vicoqi/article/details/79743112
+https://blog.csdn.net/zhushuai1221/article/details/105440503
+
+> 此处认为内存泄漏是指对象不会再被使用，但一直存在于内存中不被回收
+ThreadLocal的使用情况有以下几种：
+- ThreadLocal是否是static变量
+- 是否使用的线程池
+
+#### 1. 线程池下的static的ThreadLocal
+一般情况下，在WEB开发中，我们会定义的是**public final static ThreadLocal threadLocal = new ThreadLocal<>();**  
+假如我们用这个来存储权限信息，WEB开发HTTP请求一般也是线程池的情况  
+在此情况下如果只threadLocal.set(auth);  
+但是没有remove();就会导致本次接口请求结束了，权限信息还在ThreadLocalMap中
+毫无疑问，此时是内存泄漏
+如果下次接口请求用到了这个线程，你不set(newAuth)，就会导致bug(下次get拿到的是旧值)  
+当set新的权限时，由于threadLocal引用未变，那么就会覆盖掉之前的auth  
+
+> 但仍然不建议用完了不remove，全靠set来覆盖，因为你不知道业务逻辑会怎么变，以后会出什么bug
+> 内存泄漏下，由于业务逻辑的不同，甚至可能会OOM，例如，下面这段代码就会
+```java
+    public final static ThreadLocal<Map> threadLocal = new ThreadLocal<>();
+
+    public static void main(String[] args) {
+        Random r = new Random();
+        while (true) {
+            if (threadLocal.get() == null) {
+                threadLocal.set(new HashMap());
+            }
+            Map map = threadLocal.get();
+            double value = r.nextDouble();
+            map.put(value, value);
+//            threadLocal.remove();
+        }
+    }
+```
+#### 2. 局部变量的ThreadLocal（何时才会引发ThreadLocalMap的弱引用回收？）
+另一种情况，就是局部变量的ThreadLocal，也是很多技术博客提到的JVM会回收弱引用  
+ThreadLocalMap里的Entry的key是弱引用，如果ThreadLocal没有强引用，那么会在gc时被回收  
+此时就会有Entry的key为null的对象，此时Entry不会再被用到了，但却无法被回收，也可称为内存泄漏  
+但一般不会产生，因为在执行set、get、remove方法时都会调用**expungeStaleEntry**去删除key为null的Entry（ThreadLocal的安全措施）  
+例如如下代码，内存泄漏不久后，就会被回收掉，不会OOM   
+```java
+    public static void main(String[] args) {
+        Random r = new Random();
+        while (true) {
+            ThreadLocal threadLocal = new ThreadLocal();
+            double value = r.nextDouble();
+            threadLocal.set(value);
+            System.out.println(threadLocal.get());
+        }
+    }
+```
+#### 3. 非线程池
+而非线程池的情况，写的太累了，简单说说，就是Thread用完了，ThreadLocalMap（Thread的成员属性）也会被回收，使用不当，会泄漏，但线程结束，也都啥都没了。
+
 
 ## HashMap原理：
 - `static class Node<K,V> implements Map.Entry<K, V>` 是HashMap的内部类，（在key冲突不多时）用来存储信息，包括hash、key、value、next四个属性
@@ -204,6 +277,8 @@ System.out.println(Arrays.toString(strings));
 [什么叫做编译时已经确定调用哪个方法？](##静态调用、动态调用)
 
 # JVM
+> 未特别指明，均为HotSpot虚拟机
+
 ## JVM模型
 - 内存模型：
   - 方法区
@@ -214,6 +289,24 @@ System.out.println(Arrays.toString(strings));
 > 一个**线程**对应一个**方法栈**、**程序计数器**  
 一个**方法**对应一个**栈帧**  
 大家共用一个**堆**
+
+### 堆内存
+堆内存用来存放对象和方法，分为三个部分  
+1. 新生代
+由Eden、Survivor0、Survivor1组成，默认大小比例为8：1：1
+回收算法：复制算法
+
+2. 老年代
+新生代中年龄大于15的会进入老年代
+回收算法：标记整理算法
+
+3. 永久代\元空间
+逻辑上属于堆内存，用来存放方法，
+
+> 堆内存默认的最小内存为物理内存的1/64，最大内存为物理内存的1/4（待确认，我的测试结果和这个不一致）
+
+> 对象不止可以分配在堆上，还可以分配到[栈上](https://www.cnblogs.com/BlueStarWei/p/9358757.html)  
+当对象作用域仅在本方法内（逃逸分析），就可以把对象打散分配到栈上（标量替换）
 
 ## Java文件执行流程
 Java不能完全叫编译型或是解释型语言
@@ -267,3 +360,4 @@ class Car extends Box {
 
 ## JVM调试
 - 堆内存参数：初始值`-Xms`， 最大值`-Xmx`
+- -XX:+PrintGC
