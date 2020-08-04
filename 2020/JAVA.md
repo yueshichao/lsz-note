@@ -4,7 +4,30 @@ https://github.com/doocs/advanced-java
 
 ## ThreadLocal
 ### 作用与使用方法
-TODO
+
+- 简单使用
+```java
+ThreadLocal<String> threadLocal = new ThreadLocal<>();
+threadLocal.set("此线程名：" + Thread.currentThread().getName());
+String s = threadLocal.get();
+System.out.println(s);
+threadLocal.remove();
+```
+
+- [带初始化值](https://www.cnblogs.com/anhaogoon/p/13280737.html)
+> 一般用于线程池，如数据库连接池，一个线程绑定一个Connection对象
+```java
+ExecutorService executor = Executors.newFixedThreadPool(5);
+ThreadLocal<String> threadLocal = new ThreadLocal<String>(){
+    @Override
+    protected String initialValue() {
+        return "默认值";
+    }
+};
+executor.execute(() -> {
+    System.out.println(threadLocal.get());
+});
+```
 
 ### 原理
 - Thread类拥有 `ThreadLocal.ThreadLocalMap threadLocals = null;` 成员变量，信息都保存在这里（而非保存在ThreadLocal里）
@@ -79,6 +102,8 @@ ThreadLocalMap里的Entry的key是弱引用，如果ThreadLocal没有强引用�
 #### 3. 非线程池
 而非线程池的情况，写的太累了，简单说说，就是Thread用完了，ThreadLocalMap（Thread的成员属性）也会被回收，使用不当，会泄漏，但线程结束，也都啥都没了。
 
+### 主线程传递给子线程
+InheritableThreadLocal // TODO
 
 ## HashMap原理：
 - `static class Node<K,V> implements Map.Entry<K, V>` 是HashMap的内部类，（在key冲突不多时）用来存储信息，包括hash、key、value、next四个属性
@@ -124,79 +149,23 @@ final Node<K,V> nextNode() {
 }
 ```
 
+## [synchronized](https://juejin.im/post/6854573221258199048)
+1. 作用于方法、代码块
+2. JVM基于Monitor（对象头标记）实现
+
 ## java.util.concurrent
-### AbstractQueuedSynchronizer
+### [AbstractQueuedSynchronizer](https://segmentfault.com/a/1190000015562787)
 > 队列同步器，简写AQS  
 既然是抽象类，自然是用来被继承的，J.U.C包下的很多类都继承或组合了这个类  
 抽象类主要是封装麻烦的细节，子类重写部分方法即可完成定制的类
+AQS就是模板方法设计模式，存在大量的final方法，我们称之为skeleton method  
+> jdk1.8上关于此类的说明：This class is designed to be a useful basis for most kinds of synchronizers that rely on a single atomic {@code int} value to represent state
 1. 两个内部类
 ```java
 public class ConditionObject implements Condition, java.io.Serializable {}
 
 // 
 static final class Node {}
-```
-1. 被封装的方法 - **非private**且是**final**的方法
-```java
-protected final int getState();
-
-protected final void setState(int newState);
-
-protected final boolean compareAndSetState(int expect, int update);
-
-final boolean acquireQueued(final Node node, int arg);
-
-public final void acquire(int arg);
-
-public final void acquireInterruptibly(int arg);
-
-public final boolean tryAcquireNanos(int arg, long nanosTimeout);
-
-public final boolean release(int arg);
-
-public final void acquireShared(int arg);
-
-public final void acquireSharedInterruptibly(int arg);
-
-public final boolean tryAcquireSharedNanos(int arg, long nanosTimeout);
-
-public final boolean releaseShared(int arg);
-
-public final boolean hasQueuedThreads();
-
-public final boolean hasContended();
-
-public final Thread getFirstQueuedThread();
-
-public final boolean isQueued(Thread thread);
-
-final boolean apparentlyFirstQueuedIsExclusive();
-
-public final boolean hasQueuedPredecessors();
-
-public final int getQueueLength();
-
-public final Collection<Thread> getQueuedThreads();
-
-public final Collection<Thread> getExclusiveQueuedThreads();
-
-public final Collection<Thread> getSharedQueuedThreads();
-
-final boolean isOnSyncQueue(Node node);
-
-final boolean transferForSignal(Node node);
-
-final boolean transferAfterCancelledWait(Node node);
-
-final int fullyRelease(Node node);
-
-public final boolean owns(ConditionObject condition);
-
-public final boolean hasWaiters(ConditionObject condition);
-
-public final int getWaitQueueLength(ConditionObject condition);
-
-public final Collection<Thread> getWaitingThreads(ConditionObject condition);
 ```
 
 ## ConcurrentHashMap、Hashtable对比
