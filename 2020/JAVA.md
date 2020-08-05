@@ -155,17 +155,129 @@ final Node<K,V> nextNode() {
 
 ## java.util.concurrent
 ### [AbstractQueuedSynchronizer](https://segmentfault.com/a/1190000015562787)
+参考：https://github.com/TangBean/Java-Concurrency-in-Practice/blob/master/Ch3-Java%E5%B9%B6%E5%8F%91%E9%AB%98%E7%BA%A7%E4%B8%BB%E9%A2%98/03-AQS%E6%A1%86%E6%9E%B6.md
 > 队列同步器，简写AQS  
 既然是抽象类，自然是用来被继承的，J.U.C包下的很多类都继承或组合了这个类  
 抽象类主要是封装麻烦的细节，子类重写部分方法即可完成定制的类
 AQS就是模板方法设计模式，存在大量的final方法，我们称之为skeleton method  
 > jdk1.8上关于此类的说明：This class is designed to be a useful basis for most kinds of synchronizers that rely on a single atomic {@code int} value to represent state
-1. 两个内部类
+1. 从ReentrantLock(以下简称Lock)看AQS
+Lock与AQS是**组合**的关系，Lock可以是公平锁，也可以是非公平锁，由构造器传参决定。
+公平锁由**FairSync**实现，非公平锁由**NonfairSync**实现，他们都继承自**Sync**，Sync继承自AQS
+下面仅看公平锁部分**关键**代码
 ```java
-public class ConditionObject implements Condition, java.io.Serializable {}
+public class ReentrantLock implements Lock {
+    private final Sync sync;
 
-// 
-static final class Node {}
+    abstract static class Sync extends AbstractQueuedSynchronizer {
+        abstract void lock();
+
+        protected final boolean tryRelease(int releases) {
+            // 释放锁资源后的锁值
+            int c = getState() - releases;
+            boolean free = false;
+            // 资源
+            if (c == 0) {
+                free = true;
+                setExclusiveOwnerThread(null);
+            }
+            setState(c);
+            return free;
+        }
+    }
+
+    static final class FairSync extends Sync {
+        private static final long serialVersionUID = -3000897897090466540L;
+
+        final void lock() {
+            acquire(1);
+        }
+
+        protected final boolean tryAcquire(int acquires) {
+            final Thread current = Thread.currentThread();
+            int c = getState();
+            if (c == 0) {
+                if (!hasQueuedPredecessors() &&
+                    compareAndSetState(0, acquires)) {
+                    setExclusiveOwnerThread(current);
+                    return true;
+                }
+            }
+            else if (current == getExclusiveOwnerThread()) {
+                int nextc = c + acquires;
+                if (nextc < 0)
+                    throw new Error("Maximum lock count exceeded");
+                setState(nextc);
+                return true;
+            }
+            return false;
+        }
+    }
+}
+```
+
+2. AQS排他锁的简单演示
+```java
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.AbstractQueuedSynchronizer;
+
+public class Main {
+
+    public static void main(String[] args) throws InterruptedException {
+        SyncDemo sync = new SyncDemo();
+
+        // 拿到互斥资源
+        System.out.println("Main acquire(1)");
+        sync.acquire(1);
+
+        new Thread(() -> {
+            // 拿到2份互斥资源
+            sync.acquire(2);
+            System.out.println("Sub acquire(2)");
+            System.out.println("Sub release(1)");
+            // 分两次release资源
+            sync.release(1);
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println("Sub release(1)");
+            sync.release(1);
+        }).start();
+
+        // 等待两秒再释放资源
+        TimeUnit.SECONDS.sleep(2);
+        System.out.println("Main release(1)");
+        sync.release(1);
+
+        // 等待10ms，让子线程先acquire
+        TimeUnit.MILLISECONDS.sleep(10);
+        sync.acquire(1);
+        System.out.println("Main end...");
+
+    }
+
+    static class SyncDemo extends AbstractQueuedSynchronizer {
+
+        @Override
+        protected boolean tryAcquire(int arg) {
+            int expect = 0;
+            boolean b = compareAndSetState(expect, arg);
+//            System.out.printf("compareAndSetState(%d, %d) = %s\n", expect, arg, b);
+            return b;
+        }
+
+        @Override
+        protected boolean tryRelease(int arg) {
+//            System.out.printf("state = %d, arg = %d\n", getState(), arg);
+            int currentState = getState() - arg;
+            setState(currentState);
+            return currentState == 0;
+        }
+    }
+    
+}
 ```
 
 ## ConcurrentHashMap、Hashtable对比
