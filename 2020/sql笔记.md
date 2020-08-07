@@ -84,26 +84,13 @@ LEFT JOIN tapd_bug_changes as b
 on a.project_id = b.workspace_id and b.field = 'current_owner';
 ```
 
-> 表tapd_bug_changes数据70w+，tapd_ext_user_project小表（20+），tapd_projects大表（1600+），1语句10s，2语句4s，3语句1s，4语句7s
+> 表tapd_bug_changes数据70w+，tapd_ext_user_project小表（20+），tapd_projects表（1600+），1语句10s，2语句4s，3语句1s，4语句7s
 
 
 ## 2020-04-26
 - 修改表名：
 ```sql
 alter table table_pre rename as table_now
-```
-
-
-- 第一个sql比第二个快？
-
-```sql
-select a.tapd_username as `name`, b.department_id from tapd_ext_username_to_uid as a, ldap_users as b
-where a.ldap_user_uid = b.uid
-```
-
-```sql
-select a.tapd_username as `name`, b.department_id from tapd_ext_username_to_uid as a
-left join ldap_users as b on a.ldap_user_uid = b.uid
 ```
 
 ## 2020-04-27
