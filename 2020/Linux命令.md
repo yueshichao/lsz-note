@@ -27,6 +27,8 @@
 - tcpdump -iany -s0 udp src port 19020 # 抓取udp包，源端口19020
 - tcpdump -iany -s0 udp | grep "[a-z|0-9|.|-]*\.19020\s>" # 抓取结果正则输出
 
+- netstat -ntlp # 查看所有tcp端口
+
 ***
 ***
 > 以上命令分类是根据计算机硬件分的
