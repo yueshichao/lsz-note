@@ -84,26 +84,13 @@ LEFT JOIN tapd_bug_changes as b
 on a.project_id = b.workspace_id and b.field = 'current_owner';
 ```
 
-> 表tapd_bug_changes数据70w+，tapd_ext_user_project小表（20+），tapd_projects大表（1600+），1语句10s，2语句4s，3语句1s，4语句7s
+> 表tapd_bug_changes数据70w+，tapd_ext_user_project小表（20+），tapd_projects表（1600+），1语句10s，2语句4s，3语句1s，4语句7s
 
 
 ## 2020-04-26
 - 修改表名：
 ```sql
 alter table table_pre rename as table_now
-```
-
-
-- 第一个sql比第二个快？
-
-```sql
-select a.tapd_username as `name`, b.department_id from tapd_ext_username_to_uid as a, ldap_users as b
-where a.ldap_user_uid = b.uid
-```
-
-```sql
-select a.tapd_username as `name`, b.department_id from tapd_ext_username_to_uid as a
-left join ldap_users as b on a.ldap_user_uid = b.uid
 ```
 
 ## 2020-04-27
@@ -203,7 +190,7 @@ WHERE 1 = 1
 - IN 内查询条件看起来一致，但第1句1.2s，第2句40ms，第1句没走索引，原因在于workspace_id编码与project_id编码不一致，一个utf8，一个utf8mb4
 
 
-### 2020-05-22
+## 2020-05-22
 
 MYSQL数据迁移
 
@@ -216,7 +203,7 @@ count中使用条件
 select count(IF(phone != '', true, null)) from user;
 ```
 
-### 2020-07-07
+## 2020-07-07
 - 下面SQL语句会使左连接失效吗？
 ```sql
 select * from a
@@ -235,6 +222,12 @@ where b.created > 'XXXX'
 - group by主键之后，同一个元组仍是可select的(MySQL 5.7)
 ```sql
 select * from a group by id
+```
+
+## 2020-08-10
+MYSQL查看数据库最后修改时间
+```sql
+select TABLE_NAME, UPDATE_TIME from information_schema.TABLES WHERE table_schema = '数据库名';
 ```
 
 # Oracle笔记
