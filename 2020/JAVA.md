@@ -86,7 +86,7 @@ ThreadLocal的使用情况有以下几种：
 另一种情况，就是局部变量的ThreadLocal，也是很多技术博客提到的JVM会回收弱引用  
 ThreadLocalMap里的Entry的key是弱引用，如果ThreadLocal没有强引用，那么会在gc时被回收  
 此时就会有Entry的key为null的对象，此时Entry不会再被用到了，但却无法被回收，也可称为内存泄漏  
-但一般不会产生，因为在执行set、get、remove方法时都会调用**expungeStaleEntry**去删除key为null的Entry（ThreadLocal的安全措施）  
+但一般不会产生OOM，因为在执行set、get、remove方法时都会调用**expungeStaleEntry**去删除key为null的Entry（ThreadLocal的安全措施）  
 例如如下代码，内存泄漏不久后，就会被回收掉，不会OOM   
 ```java
     public static void main(String[] args) {
@@ -155,7 +155,9 @@ final Node<K,V> nextNode() {
 
 ## java.util.concurrent
 ### [AbstractQueuedSynchronizer](https://segmentfault.com/a/1190000015562787)
-参考：https://github.com/TangBean/Java-Concurrency-in-Practice/blob/master/Ch3-Java%E5%B9%B6%E5%8F%91%E9%AB%98%E7%BA%A7%E4%B8%BB%E9%A2%98/03-AQS%E6%A1%86%E6%9E%B6.md
+参考：
+https://github.com/TangBean/Java-Concurrency-in-Practice/blob/master/Ch3-Java%E5%B9%B6%E5%8F%91%E9%AB%98%E7%BA%A7%E4%B8%BB%E9%A2%98/03-AQS%E6%A1%86%E6%9E%B6.md
+https://github.com/qiurunze123/threadandjuc/blob/master/docs/AQS.md
 > 队列同步器，简写AQS  
 既然是抽象类，自然是用来被继承的，J.U.C包下的很多类都继承或组合了这个类  
 抽象类主要是封装麻烦的细节，子类重写部分方法即可完成定制的类

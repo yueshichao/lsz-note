@@ -4,6 +4,8 @@
 | 命令            | 说明                                     |
 | --------------- | ---------------------------------------- |
 | ping            | 返回pong表示连接正常                     |
+| config get *    | 获取redis配置信息                        |
+| select 15       | 切换至15号数据库                         |
 | set key value   | key - value                              |
 | get key         | 获取key对应的valye                       |
 | keys *          | 模糊查询所有key，有3个通配符 *、?、[]    |

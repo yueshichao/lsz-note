@@ -53,6 +53,9 @@
 
 - awk # TODO
 
+# 操作系统信息
+- cat /proc/version # 查看Linux版本信息
+
 # Kali
 ## 打开ssh服务
 1. vi /etc/ssh/ssh_config
