@@ -35,6 +35,7 @@
 # 权限管理
 - useradd -d /home/sam -m sam # 添加用户
 - passwd sam # 设置密码
+- sudo passwd root # 有些系统装好root用户没密码，需要自己设置
 
 # 进程
 - nohup command &> /dev/null # 后台执行
