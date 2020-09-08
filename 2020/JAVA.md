@@ -395,6 +395,120 @@ System.out.println(Arrays.toString(strings));
 Java不能完全叫编译型或是解释型语言
 执行流程是： *.java* 文件编译成 *.class字节码文件* ，再通过*执行引擎*解释执行字节码，但热点代码也会被*JIT*编译成机器码。
 
+## 类加载机制
+
+字节码从数据流变成可执行的字节码需要经历
+- 加载 
+- 验证 
+- 准备 
+- 解析 
+- 初始化
+
+### 双亲委派机制
+类加载器与其parent是组合关系（非继承），每次加载类时会先让父类试着加载
+
+### 类加载器
+
+除了**BootstrapClassLoader**，其他类加载器最终都继承自**ClassLoader**  
+
+ExtClassLoader、AppClassLoader都直接继承自**URLClassLoader**  
+
+- BootstrapClassLoader  
+使用C/C++实现，负责加载jre/lib/rt.jar下的class
+
+- ExtClassLoader  
+从源码 **System.getProperty("java.ext.dirs");** 可以看出加载ext目录下的class
+
+- AppClassLoader  
+从 **System.getProperty("java.class.path");** 可以看出加载classpath下的class
+
+### 自定义类加载器
+1. 准备class文件，我是从一个.java文件编译过来的，java源码如下
+```java
+public class Hello {
+
+    public static void staticHi() {
+        System.out.println("static hi~");
+    }
+    
+    public void sayHi() {
+        System.out.println("say hi~");
+    }
+    
+}
+```
+
+2. 自定义类加载器
+```java
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+public class Main {
+
+    public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InstantiationException, InvocationTargetException {
+        // class文件位置，因为我打算从文件加载字节码
+        String fileName = "Hello.class";
+        // 自定义加载器
+        MyClassLoader classLoader = new MyClassLoader();
+        classLoader.setFileName(fileName);
+        // 拿到class
+        Class<?> helloClazz = classLoader.loadClass("Hello");
+        // 创建实例
+        Object o = helloClazz.newInstance();
+        // 通过反射拿到方法调用
+        Method sayHiMethod = helloClazz.getMethod("sayHi");
+        System.out.println("\n执行sayHi方法：");
+        sayHiMethod.invoke(o);
+        System.out.println("\n执行staticHi方法：");
+        Method staticHiMethod = helloClazz.getMethod("staticHi");
+        staticHiMethod.invoke(null);
+    }
+
+    static class MyClassLoader extends ClassLoader {
+
+        @Override
+        protected Class<?> findClass(String name) throws ClassNotFoundException {
+            byte[] bytes;
+            try(FileInputStream fis = new FileInputStream(fileName);) {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = fis.read(buffer)) != -1) {
+                    baos.write(buffer, 0, len);
+                }
+                // 为了类安全，byte[]是可以加密解密的，也是自定义加载器的主要用途之一
+                bytes = baos.toByteArray();
+                System.out.println("字节码：");
+                System.out.println(new String(bytes));
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e.getMessage());
+            }
+            return defineClass(name, bytes, 0, bytes.length);
+        }
+
+        @Override
+        protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+            return super.loadClass(name, resolve);
+        }
+
+        // 根据需求，自行定义字段
+        private String fileName;
+
+        public void setFileName(String fileName) {
+            this.fileName = fileName;
+        }
+
+    }
+
+}
+```
+
+
 ## 静态调用、动态调用
 - 静态调用是指在编译时确定调用哪个方法，如构造器、private方法、static方法都是**解析字节码阶段**确定的  
 > 字节码：*invokespecial*、*invokestatic*
