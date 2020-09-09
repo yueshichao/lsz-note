@@ -230,6 +230,20 @@ MYSQL查看数据库最后修改时间
 select TABLE_NAME, UPDATE_TIME from information_schema.TABLES WHERE table_schema = '数据库名';
 ```
 
+## 2020-09-08
+MySQL（5.7.25）不允许先select，再直接update的操作，例如
+```sql
+delete from `user` where id in (
+	select id from `user`
+)
+```
+需要改写，加一张中间表
+```sql
+delete from `user` where id in (
+	select id from (select id from `user`) a
+)
+```
+
 # Oracle笔记
 建表：JOBS
 ```sql
