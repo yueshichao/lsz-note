@@ -554,6 +554,89 @@ class Car extends Box {
 10 return
 ```
 
+## String (jdk1.8)
+### "+"运算符拼接字符串
+```java
+String a = "a";
+String b = "b";
+// a、b至少有一个非常量引用
+String s0 = "a" + "b";
+```
+字节码如下
+```bytecode
+ 0 ldc #2 <a>
+ 2 astore_1
+ 3 ldc #3 <b>
+ 5 astore_2
+ 6 new #4 <java/lang/StringBuilder>
+ 9 dup
+10 invokespecial #5 <java/lang/StringBuilder.<init>>
+13 aload_1
+14 invokevirtual #6 <java/lang/StringBuilder.append>
+17 aload_2
+18 invokevirtual #6 <java/lang/StringBuilder.append>
+21 invokevirtual #7 <java/lang/StringBuilder.toString>
+24 astore_3
+25 return
+```
+可以看出+运算符，在JVM编译后，本质是new了**StringBuilder**去append，最后调用StringBuilder的toString()赋值  
+StringBuilder#toString()源码如下：
+```java
+    @Override
+    public String toString() {
+        // Create a copy, don't share the array
+        return new String(value, 0, count);
+    }
+```
+这种new String(char value[], int offset, int count)的方式，会在**堆中**创建对象，但**常量池中没有**
+
+
+> 常量、常量引用的拼接，都会在编译期优化，例如："a" + "b"在编译时会直接变成"ab"
+
+### intern()
+> 参考：  
+[【译】Java中的字符串字面量](https://www.cnblogs.com/justcooooode/p/7670256.html])  
+[Java 中new String("字面量") 中 "字面量" 是何时进入字符串常量池的?](https://www.zhihu.com/question/55994121)  
+
+代码片段1：
+```java
+String s0 = new String("a") + new String("b");
+// s0.intern();
+String s1 = "ab";
+System.out.println(s0 == s1);// false
+```
+代码片段2：
+```java
+String s0 = new String("a") + new String("b");
+s0.intern();
+String s1 = "ab";
+System.out.println(s0 == s1);// true
+```
+
+上面代码中  
+```String s0 = new String("a") + new String("b");```  
+等价于  
+```String s0 = new StringBuilder().append("a").append("b").toString();```  
+等价于  
+```String s0 = new String(new char[]{'a', 'b'}, 0, 2);```
+
+
+在代码片段1中，s0作为new出来的String对象，位置在堆中，而s1是直接申明的字符串，在常量池中，所以s0 != s1  
+在代码片段2中，intern()的作用就是寻找常量池中是否有"ab"，如果没有，在常量池中增加一个引用指向s0，当```String s1 = "ab";```时直接拿了常量池中的引用
+
+思考：
+```java
+String s1 = new String("he") + new String("llo");
+String s2 = new String("h") + new String("ello");
+String s3 = s1.intern();// 第3行
+String s4 = s2.intern();// 第4行
+System.out.println(s1 == s3);// true
+System.out.println(s1 == s4);// true
+System.out.println(s2 == s3);// false
+System.out.println(s2 == s4);// false
+```
+提示：  
+第3行，第4行代码互换顺序，结果也会不一样
 
 ## JVM调试
 - 堆内存参数：初始值`-Xms`， 最大值`-Xmx`
