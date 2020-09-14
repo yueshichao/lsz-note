@@ -45,12 +45,13 @@ public void set(T value) {
 - `t.get()` 时也会将自身的hashCode作为key拿到之前**保存在ThreadLocalMap**里的对象
 
 ### 关于ThreadLocal的内存泄漏
-参考：  
+> 参考：  
 https://zhuanlan.zhihu.com/p/128102523  
 https://blog.csdn.net/vicoqi/article/details/79743112
 https://blog.csdn.net/zhushuai1221/article/details/105440503
 
-> 此处认为内存泄漏是指对象不会再被使用，但一直存在于内存中不被回收
+> 此处认为内存泄漏是指对象不会再被使用，但一直存在于内存中不被回收  
+
 ThreadLocal的使用情况有以下几种：
 - ThreadLocal是否是static变量
 - 是否使用的线程池
@@ -637,6 +638,10 @@ System.out.println(s2 == s4);// false
 ```
 提示：  
 第3行，第4行代码互换顺序，结果也会不一样
+
+## 垃圾回收
+
+## 强引用、软引用、弱引用、虚引用
 
 ## JVM调试
 - 堆内存参数：初始值`-Xms`， 最大值`-Xmx`
