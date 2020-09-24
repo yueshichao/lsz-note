@@ -54,6 +54,9 @@ public class FeignRequestInterceptor implements RequestInterceptor {
 }
 ```
 
+# [@value注入static变量](https://www.cnblogs.com/xiang--liu/p/11445318.html)
+像成员变量那样注入会为null
+可以用set方法注入
 
 # Redisson分布式锁
 
