@@ -230,6 +230,41 @@ MYSQL查看数据库最后修改时间
 select TABLE_NAME, UPDATE_TIME from information_schema.TABLES WHERE table_schema = '数据库名';
 ```
 
+## 2020-09-08
+MySQL（5.7.25）不允许先select，再直接update的操作，例如
+```sql
+delete from `user` where id in (
+	select id from `user`
+)
+```
+需要改写，加一张中间表
+```sql
+delete from `user` where id in (
+	select id from (select id from `user`) a
+)
+```
+
+## 2020-09-22
+```sql
+-- 该日为周几，西方认为周日为一周的第一天
+SELECT DAYOFWEEK('2020-01-05');
+-- 该日为一年中的第几周，从0开始计数
+SELECT WEEK('2020-01-05');
+```
+`DAYOFWEEK('2020-01-05')`查询结果为**1**  
+
+`WEEK('2020-01-05')`查询结果也为**1**，原因在于默认以第一个周日为第一周的开始，之前的会返回0  
+例如`WEEK('2020-01-01')`就会返回0  
+如果查询的是`2017-01-01`，当日也是周日，则会返回1
+
+
+想要以周一作为一周的开始，加参数
+```sql
+SELECT WEEK('2020-01-01', 1); -- 返回1
+```
+
+参考：https://blog.csdn.net/qq_21995733/article/details/78989074
+
 # Oracle笔记
 建表：JOBS
 ```sql

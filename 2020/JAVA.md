@@ -123,12 +123,13 @@ public void set(T value) {
 - `t.get()` 时也会将自身的hashCode作为key拿到之前**保存在ThreadLocalMap**里的对象
 
 ### 关于ThreadLocal的内存泄漏
-参考：  
+> 参考：  
 https://zhuanlan.zhihu.com/p/128102523  
 https://blog.csdn.net/vicoqi/article/details/79743112
 https://blog.csdn.net/zhushuai1221/article/details/105440503
 
-> 此处认为内存泄漏是指对象不会再被使用，但一直存在于内存中不被回收
+> 此处认为内存泄漏是指对象不会再被使用，但一直存在于内存中不被回收  
+
 ThreadLocal的使用情况有以下几种：
 - ThreadLocal是否是static变量
 - 是否使用的线程池
@@ -473,6 +474,120 @@ System.out.println(Arrays.toString(strings));
 Java不能完全叫编译型或是解释型语言
 执行流程是： *.java* 文件编译成 *.class字节码文件* ，再通过*执行引擎*解释执行字节码，但热点代码也会被*JIT*编译成机器码。
 
+## 类加载机制
+
+字节码从数据流变成可执行的字节码需要经历
+- 加载 
+- 验证 
+- 准备 
+- 解析 
+- 初始化
+
+### 双亲委派机制
+类加载器与其parent是组合关系（非继承），每次加载类时会先让父类试着加载
+
+### 类加载器
+
+除了**BootstrapClassLoader**，其他类加载器最终都继承自**ClassLoader**  
+
+ExtClassLoader、AppClassLoader都直接继承自**URLClassLoader**  
+
+- BootstrapClassLoader  
+使用C/C++实现，负责加载jre/lib/rt.jar下的class
+
+- ExtClassLoader  
+从源码 **System.getProperty("java.ext.dirs");** 可以看出加载ext目录下的class
+
+- AppClassLoader  
+从 **System.getProperty("java.class.path");** 可以看出加载classpath下的class
+
+### 自定义类加载器
+1. 准备class文件，我是从一个.java文件编译过来的，java源码如下
+```java
+public class Hello {
+
+    public static void staticHi() {
+        System.out.println("static hi~");
+    }
+    
+    public void sayHi() {
+        System.out.println("say hi~");
+    }
+    
+}
+```
+
+2. 自定义类加载器
+```java
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+public class Main {
+
+    public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InstantiationException, InvocationTargetException {
+        // class文件位置，因为我打算从文件加载字节码
+        String fileName = "Hello.class";
+        // 自定义加载器
+        MyClassLoader classLoader = new MyClassLoader();
+        classLoader.setFileName(fileName);
+        // 拿到class
+        Class<?> helloClazz = classLoader.loadClass("Hello");
+        // 创建实例
+        Object o = helloClazz.newInstance();
+        // 通过反射拿到方法调用
+        Method sayHiMethod = helloClazz.getMethod("sayHi");
+        System.out.println("\n执行sayHi方法：");
+        sayHiMethod.invoke(o);
+        System.out.println("\n执行staticHi方法：");
+        Method staticHiMethod = helloClazz.getMethod("staticHi");
+        staticHiMethod.invoke(null);
+    }
+
+    static class MyClassLoader extends ClassLoader {
+
+        @Override
+        protected Class<?> findClass(String name) throws ClassNotFoundException {
+            byte[] bytes;
+            try(FileInputStream fis = new FileInputStream(fileName);) {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = fis.read(buffer)) != -1) {
+                    baos.write(buffer, 0, len);
+                }
+                // 为了类安全，byte[]是可以加密解密的，也是自定义加载器的主要用途之一
+                bytes = baos.toByteArray();
+                System.out.println("字节码：");
+                System.out.println(new String(bytes));
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e.getMessage());
+            }
+            return defineClass(name, bytes, 0, bytes.length);
+        }
+
+        @Override
+        protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+            return super.loadClass(name, resolve);
+        }
+
+        // 根据需求，自行定义字段
+        private String fileName;
+
+        public void setFileName(String fileName) {
+            this.fileName = fileName;
+        }
+
+    }
+
+}
+```
+
+
 ## 静态调用、动态调用
 - 静态调用是指在编译时确定调用哪个方法，如构造器、private方法、static方法都是**解析字节码阶段**确定的  
 > 字节码：*invokespecial*、*invokestatic*
@@ -518,6 +633,93 @@ class Car extends Box {
 10 return
 ```
 
+## String (jdk1.8)
+### "+"运算符拼接字符串
+```java
+String a = "a";
+String b = "b";
+// a、b至少有一个非常量引用
+String s0 = "a" + "b";
+```
+字节码如下
+```bytecode
+ 0 ldc #2 <a>
+ 2 astore_1
+ 3 ldc #3 <b>
+ 5 astore_2
+ 6 new #4 <java/lang/StringBuilder>
+ 9 dup
+10 invokespecial #5 <java/lang/StringBuilder.<init>>
+13 aload_1
+14 invokevirtual #6 <java/lang/StringBuilder.append>
+17 aload_2
+18 invokevirtual #6 <java/lang/StringBuilder.append>
+21 invokevirtual #7 <java/lang/StringBuilder.toString>
+24 astore_3
+25 return
+```
+可以看出+运算符，在JVM编译后，本质是new了**StringBuilder**去append，最后调用StringBuilder的toString()赋值  
+StringBuilder#toString()源码如下：
+```java
+    @Override
+    public String toString() {
+        // Create a copy, don't share the array
+        return new String(value, 0, count);
+    }
+```
+这种new String(char value[], int offset, int count)的方式，会在**堆中**创建对象，但**常量池中没有**
+
+
+> 常量、常量引用的拼接，都会在编译期优化，例如："a" + "b"在编译时会直接变成"ab"
+
+### intern()
+> 参考：  
+[【译】Java中的字符串字面量](https://www.cnblogs.com/justcooooode/p/7670256.html])  
+[Java 中new String("字面量") 中 "字面量" 是何时进入字符串常量池的?](https://www.zhihu.com/question/55994121)  
+
+代码片段1：
+```java
+String s0 = new String("a") + new String("b");
+// s0.intern();
+String s1 = "ab";
+System.out.println(s0 == s1);// false
+```
+代码片段2：
+```java
+String s0 = new String("a") + new String("b");
+s0.intern();
+String s1 = "ab";
+System.out.println(s0 == s1);// true
+```
+
+上面代码中  
+```String s0 = new String("a") + new String("b");```  
+等价于  
+```String s0 = new StringBuilder().append("a").append("b").toString();```  
+等价于  
+```String s0 = new String(new char[]{'a', 'b'}, 0, 2);```
+
+
+在代码片段1中，s0作为new出来的String对象，位置在堆中，而s1是直接申明的字符串，在常量池中，所以s0 != s1  
+在代码片段2中，intern()的作用就是寻找常量池中是否有"ab"，如果没有，在常量池中增加一个引用指向s0，当```String s1 = "ab";```时直接拿了常量池中的引用
+
+思考：
+```java
+String s1 = new String("he") + new String("llo");
+String s2 = new String("h") + new String("ello");
+String s3 = s1.intern();// 第3行
+String s4 = s2.intern();// 第4行
+System.out.println(s1 == s3);// true
+System.out.println(s1 == s4);// true
+System.out.println(s2 == s3);// false
+System.out.println(s2 == s4);// false
+```
+提示：  
+第3行，第4行代码互换顺序，结果也会不一样
+
+## 垃圾回收
+
+## 强引用、软引用、弱引用、虚引用
 
 ## JVM调试
 - 堆内存参数：初始值`-Xms`， 最大值`-Xmx`

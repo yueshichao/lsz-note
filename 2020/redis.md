@@ -75,7 +75,7 @@
 
 - publish实现
   1. publish channel:1 hi # 向channel:1发布事件
-  2， subscribe channel:1 # 订阅channel:1
+  2. subscribe channel:1 # 订阅channel:1
 
 
 
