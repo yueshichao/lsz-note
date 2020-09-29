@@ -120,3 +120,132 @@ func main() {
 ```
 
 
+## 切片
+```go
+var a = [10]int{3: 3, 5: 5, 9: 9}
+	fmt.Println(a)
+	// 切片，在数组a上，截取[3,7)区间的元素，构成切片返回给slice1。
+	// 数据不是拷贝，slice1指针指向a[3]内存区域，因为改变a[3]的值，slice1[0]的值也变了
+	slice1 := a[3:7]
+	fmt.Println(slice1)
+	// 缺省开始位置，表示从0开始切
+	sliceEnd := a[:10]
+	fmt.Println(sliceEnd)
+	// 缺省结束位置，表示切到结束
+	sliceStart := a[3:]
+	fmt.Println(sliceStart)
+
+	// slice类型声明	var sliceName []sliceType
+	var slice2 []int = a[:]
+	fmt.Println(slice2)
+	// make函数生成切片，函数原型：make( []Type, size, cap )
+	// 如果size > cap，初始化会报错：len larger than cap in make([]int)
+	slice3 := make([]int, 2, 10)
+	fmt.Println(slice3)
+
+	// append不会对原slice操作，append之后返回新的slice
+	slice4 := append(slice3, 100)
+	fmt.Println(slice4)
+	// 对slice3[0]改变后，slice4[0]的值也变为了-1
+	// TODO 猜测slice实际保存了开始指针和空间大小。每次切片，实际是新建指针指向内存区域
+	slice3[0] = -1
+	fmt.Println(slice4)
+	// append返回slice，所以可以继续当做参数append，这个链式调用不太优雅啊
+	slice5 := append(append(slice4, 1), 2)
+	fmt.Println(slice5)
+
+	// 解包：将切片变成参数列表，切片像python，解包像es，不过es的三点运算符在变量之前
+	slice6 := append(slice4, slice3...)
+	fmt.Println(slice6)
+
+	// 如果说切数组是移动指针实现的，那么append是怎么实现的
+	// 分别在base切片上append，总不能直接扩展内存区域吧
+	// TODO 猜测：链表实现的append
+	sliceBase := []int{1, 2, 3}[:]
+	fmt.Println(sliceBase)
+	sliceAppend0 := append(sliceBase, -1)
+	fmt.Println(sliceAppend0)
+	sliceAppend1 := append(sliceBase, 1)
+	fmt.Println(sliceAppend1)
+
+	// copy(dst, src) 把src的[0, min(len(dst), len(src)))区间的元素复制给dst
+	slice7 := []int{1, 2, 3}
+	slice8 := []int{10, 20, 30, 40, 50}
+	copy(slice7, slice8)
+	fmt.Println(slice7, slice8)
+
+	// go本身没有切片删除操作
+	slice9 := []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	// 删除前3个元素
+	slice9 = slice9[3:]
+	fmt.Println(slice9)
+	// 删除最后3个元素
+	slice9 = slice9[:len(slice9)-3]
+	fmt.Println(slice9)
+	// 删除第1个元素
+	slice9 = append(slice9[:1], slice9[2:]...)
+	fmt.Println(slice9)
+
+	// 二维切片
+	slice10 := [][]int{{10}, {100, 200}}
+	// 二维切片赋值
+	slice10[0] = append(slice10[0], 20, 30)
+	fmt.Println(slice10)
+```
+
+
+## map
+```go
+// 初始化声明一个map
+	var map0 map[string]int = map[string]int{"one": 1}
+	map0["two"] = 2
+	fmt.Println(map0)
+
+	map1 := make(map[string]float32)
+	map1["one"] = 0.1
+	fmt.Println(map1)
+
+	// 数字 - 数组 的map
+	int2Arr := map[int][]int{}
+	int2Arr[0] = []int{0, 1, 2}
+	int2Arr[1] = []int{1, 2, 3}
+	fmt.Println(int2Arr)
+
+	// range遍历map
+	for k, v := range int2Arr {
+		// %v占位符对应值相应格式
+		fmt.Printf("k = %d, v = %v\n", k, v)
+	}
+
+	// 删除key
+	delete(map0, "one")
+	fmt.Println(map0)
+```
+
+## list
+```go
+	// 初始化list
+	list0 := list.New()
+	list0.PushBack(1)
+	list0.PushFront(0)
+	// for循环遍历list
+	for i := list0.Front(); i != nil; i = i.Next() {
+		fmt.Printf("value = %v\t", i.Value)
+	}
+	fmt.Println()
+
+	// 另一种初始化list的方式
+	var list1 list.List
+	// 拿到元素指针
+	baseRef := list1.PushBack("base")
+	// 在baseRef指向的元素后插入 "abc"
+	list1.InsertAfter("abc", baseRef)
+	// 在baseRef指向的元素前插入 "123"
+	list1.InsertBefore("123", baseRef)
+	for i := list1.Front(); i != nil; i = i.Next() {
+		fmt.Printf("value = %v\t", i.Value)
+	}
+	fmt.Println()
+```
+
+
