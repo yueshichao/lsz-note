@@ -265,6 +265,45 @@ SELECT WEEK('2020-01-01', 1); -- 返回1
 
 参考：https://blog.csdn.net/qq_21995733/article/details/78989074
 
+## 2020-10-13
+计算两天之间的工作日
+1. 定义工作日表
+```sql
+CREATE TABLE `work_day`  (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `day` date NULL DEFAULT NULL,
+  `status` int(10) NULL DEFAULT NULL COMMENT '工作日 - 0，法定节假日 - 1，休息日加班 - 2，休息日 - 3',
+  `is_rest_day` tinyint(1) NULL DEFAULT 0 COMMENT '工作日 - 0，休息日 - 1',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 367 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+```
+
+2. MySQL自定义函数
+```sql
+-- 定义函数
+DELIMITER $
+DROP FUNCTION IF EXISTS work_day_diff;
+CREATE FUNCTION work_day_diff(s date, e date) RETURNS INT
+BEGIN
+DECLARE c INT DEFAULT 0;
+	SELECT
+		count( * ) INTO c 
+	FROM
+		work_day 
+	WHERE
+		`day` BETWEEN s 
+		AND e 
+		AND is_rest_day = 0;
+return c;
+END $
+> date类型仅支持YYYY-MM-dd，若要支持时分秒，需使用datetime
+
+-- 调用函数
+select work_day_diff('2020-09-29', '2020-10-13');
+```
+
+
+
 # Oracle笔记
 建表：JOBS
 ```sql
