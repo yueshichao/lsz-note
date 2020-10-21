@@ -302,6 +302,71 @@ END $
 select work_day_diff('2020-09-29', '2020-10-13');
 ```
 
+## 2020-10-21
+MySQL的字符串处理函数真的好弱  
+现有一列字段需要处理，字段类型text，里面存储的是unicode16进制字符串  
+如`\u4e50`表示字符`乐`  
+本来直接使用百度来的函数  
+```sql
+-- unicode转字符串
+DROP FUNCTION IF EXISTS unicode_decode;
+delimiter ;;
+CREATE FUNCTION unicode_decode(content text) RETURNS text
+DETERMINISTIC
+
+BEGIN
+    DECLARE code1,code2  varchar(20);
+    DECLARE n_index,s_index smallint unsigned default 0;
+    DECLARE result,tmp_txt text;
+    DECLARE temp varchar(1);
+    SET s_index=LOCATE("\\u", content,1);
+    set result = "";
+    while s_index>0 DO 
+         set code1 = conv(substring(content,s_index+2,2),16,10);
+        set code2 = conv(substring(content,s_index+4,2),16,10);
+        set temp = convert(char(code1,code2) USING 'ucs2');
+        set tmp_txt = substring(content,n_index+1,s_index - (n_index+1));
+        set result = concat(result,tmp_txt,temp);
+        set n_index = s_index+5;
+        set s_index = LOCATE("\\u", content, s_index+1);
+    END while ; 
+    set tmp_txt = substring(content,n_index+1);
+    set result = concat(result,tmp_txt);
+    RETURN result;
+END
+;;
+delimiter ;
+```
+
+但是发布时一直失败，flyway那过不去，运维不给create function权限
+没有办法，观察数据发现，人名最多三个数字，一般在末尾加英文字符  
+写成正则大概就是这样：```(\\u\w{0,4}){1,3}.+```
+```sql
+set @s = '\u4e50\u5927\u70ae_xyz';
+-- set @s = '\u4e50592770ae';
+
+select 
+case when length(@s) - length(replace(@s, '\u', '')) = 0 
+then @s
+when length(@s) - length(replace(@s, '\u', '')) = 1
+then INSERT(@s,LOCATE('\u',@s),LOCATE('\u',@s) + 4, convert(char(conv(SUBSTRING(@s, LOCATE('\u',@s) + 1, 4), 16, 10)) USING 'ucs2')) 
+when length(@s) - length(replace(@s, '\u', '')) = 2
+then 
+	CONCAT(
+		convert(char(conv(SUBSTRING(@s, LOCATE('\u',@s) + 1, 4), 16, 10)) USING 'ucs2'),
+		convert(char(conv(SUBSTRING(SUBSTRING_INDEX(@s,'\u',-1),1, 4), 16, 10)) USING 'ucs2'),
+		SUBSTRING(SUBSTRING_INDEX(@s,'\u',-1), 5)
+	)
+when length(@s) - length(replace(@s, '\u', '')) = 3
+then 
+	CONCAT(
+		convert(char(conv(SUBSTRING(@s, LOCATE('\u',@s) + 1, 4), 16, 10)) USING 'ucs2'),
+		convert(char(conv(SUBSTRING(REPLACE(SUBSTRING_INDEX(@s,'\u',-2), SUBSTRING_INDEX(@s,'\u',-1),''), 1, 4), 16, 10)) USING 'ucs2'),
+		convert(char(conv(SUBSTRING(SUBSTRING_INDEX(@s,'\u',-1),1, 4), 16, 10)) USING 'ucs2'),
+		SUBSTRING(SUBSTRING_INDEX(@s,'\u',-1), 5)
+	)
+end;
+```
 
 
 # Oracle笔记
