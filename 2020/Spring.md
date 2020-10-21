@@ -89,3 +89,35 @@ try {
 # Spring实现AOP的两种方式
 ## 1. 使用jdk动态代理
 ## 2. 使用cglib修改字节码
+
+
+# Swagger-ui
+问题：
+今天新建项目之后，随手写了个Controller，但是无论如何都访问不了Swagger-ui.html
+页面直接报错
+```log
+Whitelabel Error Page
+This application has no explicit mapping for /error, so you are seeing this as a fallback.
+Thu Oct 15 16:39:47 CST 2020
+There was an unexpected error (type=Not Acceptable, status=406).
+Could not find acceptable representation
+```
+日志报错
+```log
+org.springframework.web.HttpMediaTypeNotAcceptableException: Could not find acceptable representation
+```
+百度搜了一些尝试不行，因为是新建项目，以为是pom出问题了，改了很多还是不行
+最后终于查到，自己随手写的Controller没指定Mapping
+```java
+@RestController
+@Slf4j
+public class MyController {
+
+    @GetMapping
+    public ResponseMessage hi() {
+        return ResponseMessage.ok(DateUtil.now());
+    }
+
+}
+```
+导致/Swagger-ui.html被mapping到了这个Controller，网页要的html，返回的json，就报错了
