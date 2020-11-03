@@ -377,6 +377,18 @@ end;
 一开始认为是jpa事务，数据还在缓存里，但是发现flush后还是不存在  
 后来CSDN的一篇问答解决了，尝试截断(truncate)表后可以插入数据了
 
+## 2020-10-28
+完善了数据同步操作部分的代码，新增一个表记录同步开始、结束、进度、异常。  
+在清洗数据时发现插入失败，基本猜得到是编码问题，因为源数据时utf8编码的，某个字段用的unicode编码后的字符串存储的  
+报错信息：
+```log
+SQL Error: 1366, SQLState: HY000
+Incorrect string value: '\xF0\x9F\x9A\x9B:&...' for column 'value_after' at row 3
+```
+定位到了这个字符：🚛
+我本以为把value_after字段改成utf8mb4就可以了，没想到还是不行  
+尝试过后发现，手动插入可以，但是jpa报错
+
 
 # Oracle笔记
 建表：JOBS
