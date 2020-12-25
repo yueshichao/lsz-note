@@ -2,6 +2,12 @@
 > https://cyc2018.github.io/CS-Notes/#/  
 https://github.com/doocs/advanced-java
 
+## 容器
+### 栈
+如果没有线程安全的要求，尽量选择**ArrayDeque**实现栈，而不是**Stack**
+
+> 因为Stack继承自Vector，维护线程安全有一定的开销，<del>并且Stack直接继承自Vector，可以通过实例化的Stack直接调用Vector的方法，在设计上不够安全</del>
+
 ## ThreadLocal
 ### 作用与使用方法
 

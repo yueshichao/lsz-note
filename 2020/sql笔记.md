@@ -388,6 +388,16 @@ Incorrect string value: '\xF0\x9F\x9A\x9B:&...' for column 'value_after' at row 
 定位到了这个字符：🚛
 我本以为把value_after字段改成utf8mb4就可以了，没想到还是不行  
 尝试过后发现，手动插入可以，但是jpa报错
+需要配置Druid的连接：`spring.datasource.druid.connection-init-sqls: SET NAMES utf8mb4`
+
+
+## 2020-12-17
+mysql 使用IF语句时，IF(condition, value1, value2)  
+当value1为date类型，value2是datetime类型时，即使结果为value2，value2也会被转为date类型  
+但是，在我脱离复杂查询语句，单独使用时却发现结果准确(条件false时，右边表达式值仍为datetime)  
+```sql
+select IF(1=0, DATE('2020-10-21'), DATE_ADD('2020-12-25 17:41:22', INTERVAL 10 MINUTE))
+```
 
 
 # Oracle笔记
