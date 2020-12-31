@@ -292,6 +292,52 @@ public class Main {
 ## ConcurrentHashMap、Hashtable对比
 首先HashMap不支持多线程环境，这俩都支持。在并发量较大时，ConcurrentHashMap表现比Hashtable更好，因为Hashtable是在put方法上加锁，而ConcurrentHashMap是在key所在的hash下标那加锁的
 
+## 多线程
+参考：https://www.cnblogs.com/jinggod/p/8484674.html
+定义：线程是轻量级的进程，进程是资源分配的最小单位，线程是资源调度的最小单位，线程共享进程的资源  
+Java创建线程方式：
+```java
+// 创建
+Thread t = new Thread();
+// 执行
+t.start();
+```
+
+
+## ExecutorService
+```java
+        while (true) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(2);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println("---");
+            ExecutorService executor = Executors.newFixedThreadPool(4);
+            executor.execute(() -> {
+                System.out.println("1");
+                try {
+                    TimeUnit.SECONDS.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
+
+            executor.execute(() -> {
+                System.out.println("2");
+                try {
+                    TimeUnit.SECONDS.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
+//            executor.shutdown(); // shutdown后会回收已经结束的线程对象
+        }
+```
+以上代码会OOM：*java.lang.OutOfMemoryError: unable to create new native thread*
+加入shutdown后，会对线程对象进行GC
+
+
 ## 序列化，实现Serializable接口
  - 自定义序列化内容：`transient`修饰，重写`writeObject`和`readObject`，由ObjectOutputStream通过反射调用
 
@@ -552,7 +598,7 @@ class Car extends Box {
 }
 ```
 
-**方法f()**的字节码信息
+**方法f()** 的字节码信息
 ```class
  0 invokestatic #6 <com/xxx/bean/Box.make>
  3 invokestatic #7 <com/xxx/bean/Car.make>
@@ -567,7 +613,7 @@ class Car extends Box {
 String a = "a";
 String b = "b";
 // a、b至少有一个非常量引用
-String s0 = "a" + "b";
+String s0 = a + b;
 ```
 字节码如下
 ```bytecode
