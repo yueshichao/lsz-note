@@ -292,19 +292,157 @@ public class Main {
 ## ConcurrentHashMap、Hashtable对比
 首先HashMap不支持多线程环境，这俩都支持。在并发量较大时，ConcurrentHashMap表现比Hashtable更好，因为Hashtable是在put方法上加锁，而ConcurrentHashMap是在key所在的hash下标那加锁的
 
-## 多线程
-参考：https://www.cnblogs.com/jinggod/p/8484674.html
-定义：线程是轻量级的进程，进程是资源分配的最小单位，线程是资源调度的最小单位，线程共享进程的资源  
-Java创建线程方式：
+## BlockingQueue 阻塞队列
 ```java
-// 创建
-Thread t = new Thread();
-// 执行
-t.start();
+BlockingQueue<String> queue = new ArrayBlockingQueue<>(10);
+final long producerVelocity = 10L;// 每秒生产3个
+final long consumerVelocity = 1L;// 每秒消费5个
+// 生产者
+new Thread(() -> {
+    int i = 0;
+    while (true) {
+        // 如果队内元素个数超出容量，返回false
+        queue.offer(++i + "");
+        try {
+            TimeUnit.MILLISECONDS.sleep(1000 / producerVelocity);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}).start();
+
+// 消费者
+new Thread(() -> {
+    while (true) {
+        try {
+            // 当队列中无元素时，take会阻塞线程
+            String take = queue.take();
+            System.out.println(take);
+            TimeUnit.MILLISECONDS.sleep(1000 / consumerVelocity);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}).start();
 ```
 
 
+## 多线程
+> 参考：
+https://www.cnblogs.com/jinggod/p/8484674.html  
+https://www.cnblogs.com/myseries/p/10895078.html  
+
+定义：线程是轻量级的进程，进程是资源分配的最小单位，线程是资源调度的最小单位，线程共享进程的资源  
+
+1. 线程的常用方法
+```java
+AtomicInteger i = new AtomicInteger(0);
+// 创建线程
+Thread thread = new Thread(() -> {
+    while (true) System.out.println(i.getAndIncrement());
+});
+// 设置为守护线程（守护线程在所有用户线程结束后中断）
+thread.setDaemon(true);
+thread.setName("abc");
+// 启动线程，
+thread.start();
+
+// 调用此方法的线程（主线程）等待thread线程
+thread.join();
+// 将中断标记位置为true，至于线程是否、何时终止，交由线程自己决定（一般线程在每次迭代时判断终止标记位）
+thread.interrupt();
+
+TimeUnit.MILLISECONDS.sleep(100);
+```
+
+2. 线程池
+
 ## ExecutorService
+### 基本用法
+```java
+// 固定线程数量的线程池
+ExecutorService executor0 = Executors.newFixedThreadPool(1);
+// 单个线程数量的线程池
+ExecutorService executor1 = Executors.newSingleThreadExecutor();
+// 缓存线程的线程池
+ExecutorService executor2 = Executors.newCachedThreadPool();
+// 定期任务线程池
+ScheduledExecutorService executor3 = Executors.newScheduledThreadPool(1);
+
+// 0. execute执行任务
+executor0.execute(() -> System.out.println("task0"));
+
+// 1. submit提交任务，返回future对象，任务结果和异常都放在future对象里
+Future<Object> future1 = executor1.submit(() -> {
+    throw new RuntimeException("task1");
+});
+try {
+    // 如果不get，task1的异常也不会打印出来
+    future1.get();
+} catch (InterruptedException | ExecutionException e) {
+    e.printStackTrace();
+}
+
+// 2. submit提交任务，传入result，返回future对象
+Future<String> future2 = executor2.submit(() -> System.out.println("task2"), "task2 result");
+try {
+    System.out.println(future2.get());
+} catch (InterruptedException | ExecutionException e) {
+    e.printStackTrace();
+}
+
+// 3. task3，定时任务，延迟0s，周期1s
+executor3.scheduleAtFixedRate(() -> System.out.println("task3"), 0L, 1L, TimeUnit.SECONDS);
+
+// 4. 不再接受新的任务
+executor0.shutdown();
+executor1.shutdown();
+executor2.shutdown();
+executor3.shutdown();
+```
+
+以上通过Executors静态方法创建的线程池，实际都是直接或间接的调用ThreadPoolExecutor构造方法。  
+阿里巴巴编程规范中不建议使用以上方法生成线程池，以newFixedThreadPool方法举例  
+```java
+public static ExecutorService newFixedThreadPool(int nThreads) {
+    return new ThreadPoolExecutor(nThreads, nThreads,
+                                    0L, TimeUnit.MILLISECONDS,
+                                    new LinkedBlockingQueue<Runnable>());
+}
+```
+LinkedBlockingQueue作为阻塞队列，没有指定容量时，则int最大值为默认容量，内存资源不够时，是可能发生OOM的  
+
+
+### 通过ThreadPoolExecutor自定义线程池
+```java
+ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(1), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+
+// task1
+executor.execute(() -> {
+    System.out.println("run task 1");
+    try {
+        TimeUnit.SECONDS.sleep(1);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+});
+
+// task2
+executor.execute(() -> System.out.println("run task 2"));
+
+// task3会被拒绝，因为task1被消费掉，task2还在阻塞队列中（容量为1），阻塞队列offer(task3)时返回false
+try {
+    executor.execute(() -> System.out.println("run task 3"));
+} catch (RejectedExecutionException e) {
+    e.printStackTrace();
+    System.out.println("task 3被拒绝!");
+}
+
+System.out.println("executor shutdown...");
+executor.shutdown();
+```
+
+
 ```java
         while (true) {
             try {
