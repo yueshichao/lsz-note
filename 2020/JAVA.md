@@ -477,7 +477,15 @@ executor.shutdown();
 
 
 ## 序列化，实现Serializable接口
- - 自定义序列化内容：`transient`修饰，重写`writeObject`和`readObject`，由ObjectOutputStream通过反射调用
+> 参考：  
+https://blog.csdn.net/u014653197/article/details/78114041  
+
+### 自定义序列化内容：
+`transient`修饰不需要序列化的属性
+加上成员方法`private void writeObject(ObjectOutputStream oos) throws IOException`  
+和`private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {}`  
+控制序列化过程(这两个方法由ObjectOutputStream通过反射调用）
+
 
 ## JDK动态代理
 ```java
