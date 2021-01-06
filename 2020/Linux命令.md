@@ -35,6 +35,7 @@
 # 权限管理
 - useradd -d /home/sam -m sam # 添加用户
 - passwd sam # 设置密码
+- sudo passwd root # 有些系统装好root用户没密码，需要自己设置
 
 # 进程
 - nohup command &> /dev/null # 后台执行
@@ -73,3 +74,6 @@
 2. update-grub
 3. systemctl set-default multi-user.target # multi-user也就是以前版本中 */etc/inittab* 的 *init 3* （多用户模式）
 4. init 6 # 重启
+
+## Nmap
+- nmap -PE 192.168.1.0/24 # 使用ICMP协议发现活跃主机

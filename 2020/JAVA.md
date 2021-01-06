@@ -8,6 +8,83 @@ https://github.com/doocs/advanced-java
 
 > 因为Stack继承自Vector，维护线程安全有一定的开销，<del>并且Stack直接继承自Vector，可以通过实例化的Stack直接调用Vector的方法，在设计上不够安全</del>
 
+## [创建对象的几种方式](https://www.cnblogs.com/yunche/p/9530927.html)
+假定这样一个对象
+```java
+public class Animal {
+    public void say() {
+        System.out.println("hello");
+    }
+}
+```
+
+1. new（不谈了）
+
+2. 反射
+    
+    1. 直接通过Class对象newInstance
+    
+       ```java
+       Class<?> aClass = Class.forName("com.lsz.Animal");
+       
+       Animal o = (Animal) aClass.newInstance();
+       
+       o.say();
+       ```
+    
+       
+    
+    2. 通过Constructor对象
+    
+       ```java
+       Class<?> aClass = Class.forName("com.lsz.Animal");
+       
+       Constructor<?> constructor = aClass.getConstructor();// 可以获取不同的构造方法
+       
+       Animal o = (Animal) constructor.newInstance();
+       
+       o.say();
+       ```
+    
+3. clone
+Animal实现Cloneable接口
+```java
+public class Animal implements Cloneable {
+
+    public void say() {
+        System.out.println("hello");
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+}
+
+```
+
+```java
+Animal animal = new Animal();
+Animal clone = (Animal) animal.clone();
+clone.say();
+```
+
+4. 序列化
+Animal实现Serializable接口，然后通过反序列化拿到对象
+```java
+Animal animal = new Animal();
+// 通过文件保存对象
+File f = new File("animal.obj")
+try(FileOutputStream fos = new FileOutputStream(f);
+    ObjectOutputStream oos = new ObjectOutputStream(fos);
+    FileInputStream fis = new FileInputStream(f);
+    ObjectInputStream ois = new ObjectInputStream(fis);) {
+    oos.writeObject(animal);
+    Animal o = (Animal) ois.readObject();
+    o.say();
+}
+```
+
 ## ThreadLocal
 ### 作用与使用方法
 
