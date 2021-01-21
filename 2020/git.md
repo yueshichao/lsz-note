@@ -73,6 +73,10 @@
 
 - git push origin :refs/tags/v1.0 # 删除本地tag后，再执行此句删除远端tag
 
+- 回退到某tag
+    - git show tag-v1.0 # 找到该tag对应的commit id
+    - git reset --hard commit-id # 回退到该版本
+
 ## 其他
 - git status # 本地工作区状态
 
