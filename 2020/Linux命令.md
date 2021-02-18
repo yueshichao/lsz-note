@@ -1,4 +1,6 @@
 # 处理器
+> https://blog.csdn.net/yjclsx/article/details/81508455  
+
 - top # 查看计算机资源，包括内存、cpu
 
 # 存储器
