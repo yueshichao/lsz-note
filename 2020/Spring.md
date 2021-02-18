@@ -121,3 +121,6 @@ public class MyController {
 }
 ```
 导致/Swagger-ui.html被mapping到了这个Controller，网页要的html，返回的json，就报错了
+
+
+# @Transactional

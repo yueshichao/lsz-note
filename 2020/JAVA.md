@@ -21,7 +21,7 @@ public class Animal {
 1. new（不谈了）
 
 2. 反射
-    
+   
     1. 直接通过Class对象newInstance
     
        ```java
@@ -84,6 +84,22 @@ try(FileOutputStream fos = new FileOutputStream(f);
     o.say();
 }
 ```
+
+5. Unsafe类
+
+   ```java
+   try {
+       // 通过反射拿到Unsafe对象
+       Field field = Unsafe.class.getDeclaredField("theUnsafe");
+       field.setAccessible(true);
+       Unsafe unsafe = (Unsafe) field.get(null);
+       // 实例化对象
+       Animal o = (Animal) unsafe.allocateInstance(Animal.class);
+       System.out.println(o);
+   } catch (NoSuchFieldException | IllegalAccessException | InstantiationException e) {
+       e.printStackTrace();
+   }
+   ```
 
 ## ThreadLocal
 ### 作用与使用方法

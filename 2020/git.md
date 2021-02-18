@@ -5,6 +5,8 @@
 
 - git branch -a # 查看所有分支（包括远程分支）
 
+- git branch -vv # 查看本地分支与远程分支信息
+
 - git checkout -b new-branch #创建并切换至新分支
 
 - git push origin dev:dev # 将本地dev分支推到服务器上，并命名为dev
