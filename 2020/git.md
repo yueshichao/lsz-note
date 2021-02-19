@@ -84,6 +84,9 @@
 
 - git config --global user.name lsz # 设置提交用户名
 
+- git mv file.txt File.txt # git修改文件名大小写
+> git默认大小写不敏感，要修改文件大小写可以使用这种方式
+
 
 ## 恢复已被删除的本地分支
 
