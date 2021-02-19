@@ -123,4 +123,38 @@ public class MyController {
 导致/Swagger-ui.html被mapping到了这个Controller，网页要的html，返回的json，就报错了
 
 
-# @Transactional
+# Spring注解
+## @Transactional
+TODO
+
+## @Cacheable
+### 使用
+1. 使用Spring Cache，需要配置启动注解`@EnableCaching`  
+2. 定义keyGenerator和CacheManager  
+```java
+@Bean("redisKeyGenerator")
+public KeyGenerator keyGenerator() {
+    // 根据类、方法、参数列表定义cache的key
+    return new KeyGenerator() {
+        @Override
+        public Object generate(Object target, Method method, Object... params) {
+            int i = target.hashCode();
+            int j = method.hashCode();
+            int k = params.hashCode();
+            int keyHashCode = i ^ j ^ k;
+            // log.info("keyHashCode = {}", keyHashCode);
+            return Integer.toString(keyHashCode);
+        }
+    };
+}
+
+@Bean
+public CacheManager cacheManager() {
+    // 定义CacheManager，我这里使用了guava的一个实现类，可以自行实现缓存机制
+    return new GuavaCacheManager();
+}
+```
+3. 在需要缓存结果的方法上加上注解，下次访问这个方法，就直接返回缓存结果了
+```java
+@Cacheable(value = "cache_name", keyGenerator = "redisKeyGenerator")
+```
