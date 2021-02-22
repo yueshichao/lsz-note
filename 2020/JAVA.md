@@ -225,7 +225,7 @@ for (Map.Entry<String, Integer> entry : entrySet) {
 ```
 > EntrySet继承自AbstractSet，却没有add方法，在foreach遍历时，也是在用iterator的方式遍历  
 HashMap自身实现了一个**HashIterator**，什么KeySet，ValueSet，EntrySet遍历时，都是他们自己的iterator继承自HashIterator去迭代
-他们仅自己实现了next方法（或者说HashIterator什么都给了，他们只取了自己想要的值）  
+他们仅自己实现了next方法（用了模板方法，HashIterator把迭代细节都实现了，子类只要迭代拿值就行了）  
 以EntrySet的迭代器**EntryIterator**为例
 ```java
 final class EntryIterator extends HashIterator

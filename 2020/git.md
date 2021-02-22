@@ -85,6 +85,7 @@
 - git config --global user.name lsz # 设置提交用户名
 
 - git mv file.txt File.txt # git修改文件名大小写
+> 参考：https://www.cnblogs.com/samwang88/p/6611947.html
 > git默认大小写不敏感，要修改文件大小写可以使用这种方式
 
 
