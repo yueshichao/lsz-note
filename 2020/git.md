@@ -96,7 +96,7 @@
 - git branch dev-back 提交id # 那次版本会恢复为dev-back分支
 
 ## [配置多个ssh-key](https://www.jianshu.com/p/d6c6f37fb4f1)
-1. 假设已有一个ssh-key存在，文件位置：~\.ssh\id_rsa
+1. 假设已有一个ssh-key存在，文件位置：`~\.ssh\id_rsa`
 2. ssh-keygen -t rsa -C "你的邮箱@xxx.com" # 生成第二个
 > 选择文件保存位置： D:\KIT\ssh-key\id_rsa
 3. 进入git安装目录，修改目录下的etc/ssh/ssh_config文件，新增两个Host配置，指定访问哪个git服务器，用哪个文件夹的ssh-key

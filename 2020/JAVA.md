@@ -581,14 +581,22 @@ https://blog.csdn.net/u014653197/article/details/78114041
 
 
 ## JDK动态代理
+> 参考：https://blog.csdn.net/neosmith/article/details/51072840
+> https://www.cnblogs.com/wlwl/p/9468348.html
+> https://www.jianshu.com/p/84ffb8d0a338
 ```java
 
 public class Main {
 
     public static void main(String[] args) {
+        // 真正的业务类Hello
         IHello hello = new Hello();
+        // 代理类
         ProxyHandler proxyHandler = new ProxyHandler(hello);
+        // 通过这段代码，JDK帮你将InvocationHandler转化为IHello类型
+        // TODO 这段代码可的原理以好好研究研究
         IHello proxyHello = (IHello) Proxy.newProxyInstance(hello.getClass().getClassLoader(), hello.getClass().getInterfaces(), proxyHandler);
+        // 代理类执行
         proxyHello.sayHello();
     }
 }
@@ -596,7 +604,7 @@ public class Main {
 interface IHello {
     void sayHello();
 }
-
+// 被代理的类
 class Hello implements IHello {
 
     @Override
@@ -604,9 +612,10 @@ class Hello implements IHello {
         System.out.println("Hello");
     }
 }
-
+// 代理类必须要实现InvocationHandler接口
 class ProxyHandler implements InvocationHandler {
 
+    // 被代理对象
     private Object object;
 
     public ProxyHandler(Object object) {
@@ -622,6 +631,10 @@ class ProxyHandler implements InvocationHandler {
     }
 }
 ```
+Spring的面向切面实现，就是用动态代理，不过是用**cglib**框架实现的  
+cglib原理是通过修改字节码，创造新的对象实现代理类的，据其他博客所言，此种方式，创建对象速度慢，运行速度快  
+而JDK动态代理，创建速度快，运行速度慢  
+
 
 ## List.toArray()的类型强转
 ```java
@@ -687,17 +700,66 @@ System.out.println(Arrays.toString(strings));
 Java不能完全叫编译型或是解释型语言
 执行流程是： *.java* 文件编译成 *.class字节码文件* ，再通过*执行引擎*解释执行字节码，但热点代码也会被*JIT*编译成机器码。
 
+
 ## 类加载机制
+> 参考：[Java类加载器 — classloader 的原理及应用](https://blog.csdn.net/Taobaojishu/article/details/113874686)  
+>
+> [通俗易懂 启动类加载器、扩展类加载器、应用类加载器](https://zhuanlan.zhihu.com/p/73359363)
+>
+> [Java 类隔离加载的正确姿势](https://zhuanlan.zhihu.com/p/141527120)
 
 字节码从数据流变成可执行的字节码需要经历
 - 加载 
+
+  > 将磁盘、网络或其他字节码中的字节码，通过类加载器加载到内存
+
 - 验证 
+
+  > 文件格式、访问限制的验证
+
 - 准备 
+
+  > 分配内存、赋予初值（并非开发者在代码中设置的初值，而是将int赋为1，对象引用赋为null）
+
 - 解析 
+
+  > 符号引用(方法名)解析为直接引用(内存地址)
+
 - 初始化
 
+  > 1. 对static修饰的变量、代码块(按代码文件中自上而下的顺序)进行初始化。
+  > 2.  如果父类为初始化，初始化其父类
+
 ### 双亲委派机制
-类加载器与其parent是组合关系（非继承），每次加载类时会先让父类试着加载
+类加载器与其parent是组合关系（非继承），所以可以说加载器间是父子关系，但不能是父类子类关系，每次加载类时会先让父加载器试着加载
+
+自定义类加载器可以破坏这种机制，因为双亲委派机制是使用ClassLoader的模板方法**loadClass()**实现的
+
+```java
+protected Class<?> loadClass(String name, boolean resolve)
+        throws ClassNotFoundException
+    {
+        synchronized (getClassLoadingLock(name)) {
+            // First, check if the class has already been loaded
+            Class<?> c = findLoadedClass(name);
+            // 省略部分代码...
+            if (parent != null) {
+                c = parent.loadClass(name, false);
+            } else {
+                c = findBootstrapClassOrNull(name);
+            }
+            // 省略无关代码...
+            if (resolve) {
+                resolveClass(c);
+            }
+            return c;
+        }
+    }
+```
+
+而你完全可以重写此方法，从而破坏双亲委派机制。
+
+> 另外，如果你自定义了类加载器，而不指定它的**parent**，默认的parent是**AppClassLoader**
 
 ### 类加载器
 
@@ -800,8 +862,10 @@ public class Main {
 }
 ```
 
+自定义类加载器常用于类的加密、类的隔离（解决依赖冲突）。
 
 ## 静态调用、动态调用
+
 - 静态调用是指在编译时确定调用哪个方法，如构造器、private方法、static方法都是**解析字节码阶段**确定的  
 > 字节码：*invokespecial*、*invokestatic*
 - 动态调用，有说法叫做虚方法，名字不重要，关键是**运行时**根据上下文才知道具体调用什么方法，继承重写的方法一般就是动态调用  
