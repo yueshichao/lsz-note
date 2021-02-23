@@ -495,7 +495,7 @@ executor3.shutdown();
 ```
 
 以上通过Executors静态方法创建的线程池，实际都是直接或间接的调用ThreadPoolExecutor构造方法。  
-阿里巴巴编程规范中不建议使用以上方法生成线程池，以newFixedThreadPool方法举例  
+阿里巴巴编程规范中**不建议使用以上方法生成线程池**，原因如下，以newFixedThreadPool方法举例  
 ```java
 public static ExecutorService newFixedThreadPool(int nThreads) {
     return new ThreadPoolExecutor(nThreads, nThreads,
@@ -503,7 +503,7 @@ public static ExecutorService newFixedThreadPool(int nThreads) {
                                     new LinkedBlockingQueue<Runnable>());
 }
 ```
-LinkedBlockingQueue作为阻塞队列，没有指定容量时，则int最大值为默认容量，内存资源不够时，是可能发生OOM的  
+LinkedBlockingQueue作为阻塞队列，没有指定容量时，则**int最大值为默认容量**，内存资源不够时，是可能发生OOM的  
 
 
 ### 通过ThreadPoolExecutor自定义线程池
@@ -537,36 +537,36 @@ executor.shutdown();
 
 
 ```java
-        while (true) {
-            try {
-                TimeUnit.MILLISECONDS.sleep(2);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            System.out.println("---");
-            ExecutorService executor = Executors.newFixedThreadPool(4);
-            executor.execute(() -> {
-                System.out.println("1");
-                try {
-                    TimeUnit.SECONDS.sleep(1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            });
-
-            executor.execute(() -> {
-                System.out.println("2");
-                try {
-                    TimeUnit.SECONDS.sleep(1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            });
-//            executor.shutdown(); // shutdown后会回收已经结束的线程对象
+while (true) {
+    try {
+        TimeUnit.MILLISECONDS.sleep(2);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+    System.out.println("---");
+    ExecutorService executor = Executors.newFixedThreadPool(4);
+    executor.execute(() -> {
+        System.out.println("1");
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+    });
+
+    executor.execute(() -> {
+        System.out.println("2");
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    });
+    // executor.shutdown(); // shutdown后会回收已经结束的线程对象
+}
 ```
 以上代码会OOM：*java.lang.OutOfMemoryError: unable to create new native thread*
-加入shutdown后，会对线程对象进行GC
+加入shutdown后，会对线程池对象进行GC，所以不需要的线程池，记得及时**shutdown**
 
 
 ## 序列化，实现Serializable接口
