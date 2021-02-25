@@ -46,6 +46,26 @@
 
 - kill -15 PID # 结束进程，15表示正常结束，9表示强制终止
 
+## 修改ssh默认端口
+> 最近开了台云服务器，一直被暴力破解22端口和80端口
+- vi /etc/ssh/sshd_config # 修改Port对应配置，假设修改为123
+- firewall-cmd --zone=public --add-port=123/tcp --permanent # 开放123端口
+- firewall-cmd --reload # 使配置生效
+- systemctl restart sshd # 重启sshd
+
+## 端口
+- lsof -i tcp:80 # 查看80端口被哪个进程占用
+
+## CentOS防火墙
+- systemctl status firewalld # 查看防火墙状态
+- systemctl start firewalld # 开启防火墙
+- systemctl stop firewalld # 关闭防火墙
+- firewall-cmd --zone=public --add-port=123/tcp --permanent # 开放123端口
+- firewall-cmd --remove-port=123/tcp --permanent # CentOS中关闭123端口
+- firewall-cmd --reload # 使配置生效
+- firewall-cmd --query-port=123/tcp # 查看是否开启成功
+- firewall-cmd --zone=public --list-ports # 查看所有开放的端口
+
 # 文本处理more、tail、grep
 
 - more test.txt | grep ">\s[a-z|0-9|.|-]*\.19[0-9]*: "
