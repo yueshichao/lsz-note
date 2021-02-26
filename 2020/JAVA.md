@@ -1021,3 +1021,6 @@ Java对象头2字（数组对象除外，3字）
 - jps # 显示Java进程
 - javap  Hello.class # 对class文件反编译 
 - jstack pid # 打印pid进程的线程信息
+- jmap # 查看JVM内存情况
+
+> jvisualvm可视化，很强大
