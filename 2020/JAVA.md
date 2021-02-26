@@ -998,6 +998,26 @@ System.out.println(s2 == s4);// false
 
 ## 强引用、软引用、弱引用、虚引用
 
+## 对象头信息
+
+> 计算机字长并无定论，不同场景不同含义  
+
+32bit计算机1字为32bit，64bit计算机1字就是64bit  
+Java对象头2字（数组对象除外，3字）  
+
+| 长度  | 内容               | 说明                      |
+| ----- | ------------------ | ------------------------- |
+| 第1字 | Mark Word          | 存储对象HashCode或锁信息  |
+| 第2字 | Class Meta Address | 存储对象类型(Class)的指针 |
+
+如果是数组，第3字存储数组长度
+
 ## JVM调试
 - 堆内存参数：初始值`-Xms`， 最大值`-Xmx`
 - -XX:+PrintGC
+- -XX:-UseCompressedOops
+
+### 调试工具
+- jps # 显示Java进程
+- javap  Hello.class # 对class文件反编译 
+- jstack pid # 打印pid进程的线程信息
