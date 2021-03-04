@@ -12,7 +12,7 @@
 | del key         | 删除key                                  |
 | exists key      | 是否存在某个key                          |
 | expire key 20   | 过期时间20s                              |
-| setnx key value | 当key不存在时设置value（常用语分布式锁） |
+| setnx key value | 当key不存在时设置value（常用于分布式锁） |
 |                 |                                          |
 
 ## 散列 - Hash
