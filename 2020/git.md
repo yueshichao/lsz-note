@@ -56,6 +56,9 @@
 ## 合并
 - git merge --abort # 取消merge
 
+## cherry-pick
+- git cherry-pick commit-id # 将某分支的某次提交合并(而非分支合并)
+
 ## 撤销修改
 - git checkout fileName # 撤销未add的本地修改
 

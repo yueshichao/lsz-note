@@ -739,3 +739,57 @@ System.out.println(s2 == s4);// false
 ```
 提示：  
 第3行，第4行代码互换顺序，结果也会不一样
+
+
+## 内部类
+```java
+public class Main {
+
+    public static void main(String[] args) {
+        class A {
+
+        }
+    }
+
+    static class B {
+
+    }
+
+    class C {
+
+    }
+
+}
+```
+
+对上述代码编译后，出现4个class文件：`Main.class`, `Main$1A.class`, `Main$B.class`, `Main$C.class`  
+对ABC三个class文件反编译得到：
+```java
+class Main$1A {
+    Main$1A() {
+    }
+}
+```
+
+```java
+class Main$B {
+    Main$B() {
+    }
+}
+```
+
+```java
+class Main$C {
+    // 这里的var1就是Main的实例
+    Main$C(Main var1) {
+        this.this$0 = var1;
+    }
+}
+```
+要实例化C，需如下操作
+```java
+Main main = new Main();
+C c = main.new C();
+```
+
+
