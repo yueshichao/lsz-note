@@ -66,7 +66,7 @@
 
 - git reset --hard HEAD^ # 回滚到上一次commit的版本
 
-- 
+- git rm --cached fileName # 将暂存区文件删除(如果是文件夹，需要加上 `-rf` 参数)
 
 ## 标签tag
 
@@ -115,4 +115,29 @@ Host github.com
     User leshizhao
     PreferredAuthentications publickey
     IdentityFile D:/KIT/ssh-key/id_rsa
+```
+
+# 常见gitignore配置
+```conf
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# Package Files #
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+### Maven template
+target/*
+
+# IDEA
+.idea/*
+*.iml
 ```

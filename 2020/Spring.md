@@ -1,3 +1,17 @@
+# Spring实现AOP的两种方式
+## 1. 使用jdk动态代理
+## 2. 使用cglib修改字节码
+
+
+# Spring解决循环依赖
+> 参考：[Spring 是如何解决循环依赖的？](https://www.zhihu.com/question/438247718)
+
+- 一级缓存：单例对象池  
+- 二级缓存：实例化、但为初始化的对象  
+- 三级缓存：对象工厂，生成代理对象  
+
+
+
 # 带token的FeignClient（带拦截器的FeignClient）
 > 这的代码顺序是倒着来的，但是对于人的认知是合理的，从已知（FeignClient）到未知（Intercepter）  
 实际写代码时，先后顺序不重要，本质就是给FeignClient加一个configuration
@@ -85,11 +99,6 @@ try {
     lock.unlock();
 }
 ```
-
-# Spring实现AOP的两种方式
-## 1. 使用jdk动态代理
-## 2. 使用cglib修改字节码
-
 
 # Swagger-ui
 问题：
