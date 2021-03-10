@@ -307,9 +307,17 @@ Java对象头2字（数组对象除外，3字）
 - -XX:-UseCompressedOops
 
 ### 调试工具
+
+> 参考：[[【JVM】jstat命令详解---JVM的统计监测工具](https://www.cnblogs.com/sxdcgaq8080/p/11089841.html)](https://www.cnblogs.com/sxdcgaq8080/p/11089841.html)
+
 - jps # 显示Java进程
 - javap  Hello.class # 对class文件反编译 
 - jstack pid # 打印pid进程的线程信息
 - jmap # 查看JVM内存情况
+- jstat # 查看堆内存、加载类情况
+  - jstat [-命令选项] [vmid] [间隔时间/毫秒] [查询次数] 
+  - jstat -class [vmid] # 类加载统计
+  - jstat -gc [vmid] # 垃圾回收统计
+  - jstat -gcnew [vmid] # 新生代垃圾回收统计
 
 > jvisualvm可视化，很强大
