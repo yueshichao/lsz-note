@@ -308,7 +308,7 @@ Java对象头2字（数组对象除外，3字）
 
 ### 调试工具
 
-> 参考：[[【JVM】jstat命令详解---JVM的统计监测工具](https://www.cnblogs.com/sxdcgaq8080/p/11089841.html)](https://www.cnblogs.com/sxdcgaq8080/p/11089841.html)
+> 参考：[【JVM】jstat命令详解---JVM的统计监测工具](https://www.cnblogs.com/sxdcgaq8080/p/11089841.html)](https://www.cnblogs.com/sxdcgaq8080/p/11089841.html)
 
 - jps # 显示Java进程
 - javap  Hello.class # 对class文件反编译 
@@ -320,4 +320,7 @@ Java对象头2字（数组对象除外，3字）
   - jstat -gc [vmid] # 垃圾回收统计
   - jstat -gcnew [vmid] # 新生代垃圾回收统计
 
+- jvisualvm
 > jvisualvm可视化，很强大
+但可能遇到老的查检中心失效，建议参考[visualVM安装插件，无法连接到visualVM 插件中心](https://blog.csdn.net/weixin_33800593/article/details/92295832),换成新的源  
+我jdk版本是1.8.0_281-b09，插件中心地址：https://visualvm.github.io/uc/8u131/updates.xml.gz  
