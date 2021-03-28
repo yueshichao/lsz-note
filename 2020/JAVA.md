@@ -113,8 +113,9 @@ System.out.println(s);
 threadLocal.remove();
 ```
 
-- [带初始化值](https://www.cnblogs.com/anhaogoon/p/13280737.html)
-> 一般用于线程池，如数据库连接池，一个线程绑定一个Connection对象
+- [带初始化值](https://www.cnblogs.com/anhaogoon/p/13280737.html)  
+> 一般用于线程池，如数据库连接池，一个线程绑定一个Connection对象  
+1. 重写initialValue  
 ```java
 ExecutorService executor = Executors.newFixedThreadPool(5);
 ThreadLocal<String> threadLocal = new ThreadLocal<String>(){
@@ -127,6 +128,12 @@ executor.execute(() -> {
     System.out.println(threadLocal.get());
 });
 ```
+2. withInitial方式  
+```java
+// 原理也是重写了initialValue
+ThreadLocal<String> threadLocal = ThreadLocal.withInitial(() -> "默认值");
+```
+
 
 ### 原理
 - Thread类拥有 `ThreadLocal.ThreadLocalMap threadLocals = null;` 成员变量，信息都保存在这里（而非保存在ThreadLocal里）
@@ -255,12 +262,14 @@ final Node<K,V> nextNode() {
 
 ## java.util.concurrent
 ### [AbstractQueuedSynchronizer](https://segmentfault.com/a/1190000015562787)
-参考：
-https://github.com/TangBean/Java-Concurrency-in-Practice/blob/master/Ch3-Java%E5%B9%B6%E5%8F%91%E9%AB%98%E7%BA%A7%E4%B8%BB%E9%A2%98/03-AQS%E6%A1%86%E6%9E%B6.md
-https://github.com/qiurunze123/threadandjuc/blob/master/docs/AQS.md
+> 参考：
+> [AbstractQueuedSynchronizer 框架 (AQS)](https://github.com/TangBean/Java-Concurrency-in-Practice/blob/master/Ch3-Java%E5%B9%B6%E5%8F%91%E9%AB%98%E7%BA%A7%E4%B8%BB%E9%A2%98/03-AQS%E6%A1%86%E6%9E%B6.md)  
+> [AbstractQueuedSynchronizer 详细解析 一切的基础](https://github.com/qiurunze123/threadandjuc/blob/master/docs/AQS.md)  
+
 > 队列同步器，简写AQS  
-既然是抽象类，自然是用来被继承的，J.U.C包下的很多类都继承或组合了这个类  
-抽象类主要是封装麻烦的细节，子类重写部分方法即可完成定制的类
+作者Doug Lea，是CLH队列锁的一种变体  
+可以看到AQS是抽象类，抽象类自然是用来被继承的，J.U.C包下的很多类都使用继承或组合的方式使用了这个类  
+抽象类主要是封装麻烦的细节，子类重写部分方法即可完成定制的类  
 AQS就是模板方法设计模式，存在大量的final方法，我们称之为skeleton method  
 > jdk1.8上关于此类的说明：This class is designed to be a useful basis for most kinds of synchronizers that rely on a single atomic {@code int} value to represent state
 1. 从ReentrantLock(以下简称Lock)看AQS
@@ -381,6 +390,37 @@ public class Main {
     
 }
 ```
+
+### AQS是CLH的变体
+> [Java AQS 核心数据结构-CLH 锁](https://juejin.cn/post/6942753984436404255)  
+```java
+public class CLH {
+
+    private final AtomicReference<Node> tail = new AtomicReference<>(new Node());
+    private final ThreadLocal<Node> node = ThreadLocal.withInitial(Node::new);
+
+    private static class Node {
+        private volatile boolean locked;
+    }
+
+    public void lock() {
+        Node node = this.node.get();
+        node.locked = true;
+        Node pre = this.tail.getAndSet(node);
+        while (pre.locked);
+    }
+
+    public void unlock() {
+        Node node = this.node.get();
+        node.locked = false;
+        this.node.set(new Node());
+    }
+
+}
+
+```
+
+
 
 ## ConcurrentHashMap、Hashtable对比
 首先HashMap不支持多线程环境，这俩都支持。在并发量较大时，ConcurrentHashMap表现比Hashtable更好，因为Hashtable是在put方法上加锁，而ConcurrentHashMap是在key所在的hash下标那加锁的
