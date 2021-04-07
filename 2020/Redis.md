@@ -1,3 +1,99 @@
+# Redis环境快速搭建
+
+> 参考：[Redis Sentinel-深入浅出原理和实战](https://zhuanlan.zhihu.com/p/334983562)
+
+## Docker单机方式启动
+- docker run -d --name redis -p 6379:6379 redis
+
+// TODO 主从 slaveof
+
+## Sentinel集群方式启动
+
+准备两个目录`./redis`和`./sentinel`，分别存放`docker-compose.yml`  和配置文件
+
+1. 文件`./redis/docker-compose.yml`
+
+```yml
+version: '2'
+services:
+  master:
+    image: redis
+    container_name: redis-master
+    ports:
+      - 6380:6379
+  slave1:
+    image: redis
+    container_name: redis-slave-1
+    ports:
+      - 6381:6379
+    command:  redis-server --slaveof redis-master 6379
+  slave2:
+    image: redis
+    container_name: redis-slave-2
+    ports:
+      - 6382:6379
+    command: redis-server --slaveof redis-master 6379
+```
+
+在./redis目录下使用`docker-compose up`启动redis集群
+
+2. 文件`./sentinel/docker-compose.yml`
+
+```yml
+version: '2'
+services:
+  sentinel1:
+    image: redis
+    container_name: redis-sentinel-1
+    ports:
+      - 26379:26379
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    volumes:
+      - ./sentinel.conf:/usr/local/etc/redis/sentinel.conf
+  sentinel2:
+    image: redis
+    container_name: redis-sentinel-2
+    ports:
+    - 26380:26379
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    volumes:
+      - ./sentinel.conf:/usr/local/etc/redis/sentinel.conf
+  sentinel3:
+    image: redis
+    container_name: redis-sentinel-3
+    ports:
+      - 26381:26379
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    volumes:
+      - ./sentinel.conf:/usr/local/etc/redis/sentinel.conf
+networks:
+  default:
+    external:
+      name: redis_default
+```
+
+3. 还需准备sentinel.conf
+
+`./sentinel/sentinel.conf`
+
+```conf
+port 26379
+dir "/tmp"
+sentinel deny-scripts-reconfig yes
+sentinel monitor mymaster 172.19.0.2 6379 2
+sentinel config-epoch mymaster 1
+sentinel leader-epoch mymaster 1
+```
+
+>  其中第四行配置项`sentinel monitor mymaster 172.19.0.2 6379 2`，是我自己master的容器ip(172.19.0.2)，6379是容器内开放的端口号，需要替换成自己本地的，使用`docker inspect redis-master | grep 'IPAddress'`查看
+
+在./sentinel目录下`docker-compose up`启动sentinel集群
+
+> 可以手动模拟master-redis挂掉，在`./redis`目录下`docker-compose pause master`暂停master-redis，也可以取消暂停`docker-compose unpause master`
+
+// TODO cluster
+
+
 # [redis基础](https://juejin.im/post/6857667542652190728)
 ## 常用命令
 
