@@ -78,6 +78,10 @@
 
 - git push origin :refs/tags/v1.0 # 删除本地tag后，再执行此句删除远端tag
 
+- [删除所有tag](https://www.cnblogs.com/kiancyc/p/13936890.html)
+  - git push origin --delete $(git tag -l) # 删除所有服务器端的tag
+  - git tag -d $(git tag -l) # 删除所有本地tag
+
 - 回退到某tag
     - git show tag-v1.0 # 找到该tag对应的commit id
     - git reset --hard commit-id # 回退到该版本

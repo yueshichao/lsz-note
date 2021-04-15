@@ -620,61 +620,6 @@ https://blog.csdn.net/u014653197/article/details/78114041
 控制序列化过程(这两个方法由ObjectOutputStream通过反射调用）
 
 
-## JDK动态代理
-> 参考：https://blog.csdn.net/neosmith/article/details/51072840
-> https://www.cnblogs.com/wlwl/p/9468348.html
-> https://www.jianshu.com/p/84ffb8d0a338
-```java
-
-public class Main {
-
-    public static void main(String[] args) {
-        // 真正的业务类Hello
-        IHello hello = new Hello();
-        // 代理类
-        ProxyHandler proxyHandler = new ProxyHandler(hello);
-        // 通过这段代码，JDK帮你将InvocationHandler转化为IHello类型
-        // TODO 这段代码可的原理以好好研究研究
-        IHello proxyHello = (IHello) Proxy.newProxyInstance(hello.getClass().getClassLoader(), hello.getClass().getInterfaces(), proxyHandler);
-        // 代理类执行
-        proxyHello.sayHello();
-    }
-}
-
-interface IHello {
-    void sayHello();
-}
-// 被代理的类
-class Hello implements IHello {
-
-    @Override
-    public void sayHello() {
-        System.out.println("Hello");
-    }
-}
-// 代理类必须要实现InvocationHandler接口
-class ProxyHandler implements InvocationHandler {
-
-    // 被代理对象
-    private Object object;
-
-    public ProxyHandler(Object object) {
-        this.object = object;
-    }
-
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        System.out.println("Before invoke...");
-        method.invoke(object, args);
-        System.out.println("After invoke...");
-        return null;
-    }
-}
-```
-Spring的面向切面实现，就是用动态代理，不过是用**cglib**框架实现的  
-cglib原理是通过修改字节码，创造新的对象实现代理类的，据其他博客所言，此种方式，创建对象速度慢，运行速度快  
-而JDK动态代理，创建速度快，运行速度慢  
-
 
 ## List.toArray()的类型强转
 ```java
