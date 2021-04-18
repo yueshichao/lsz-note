@@ -102,3 +102,10 @@ redis-cli --cluster create --cluster-replicas 1 192.168.159.129:6371 192.168.159
 > VS Code的Remote SSH真的爽！  
 > 看啥都不如看官网文档！
 > 推荐一个国产的Redis客户端：Another Redis DeskTop Manager，比微软的哪一款界面好看，交互也舒服，关键不用每次开启都提示我更新。
+
+
+> 回家重新部署Redis Cluster出问题了，容器内不能访问配置文件（Can't Open File什么的）  
+> 排查发现容器内没有权限，我把宿主机全都777的权限也不行，进容器一看权限全是问号  
+> 今天太晚了，下次再看看，以下几篇博客待参考：  
+> https://blog.csdn.net/weixin_41826563/article/details/80549323  
+> https://blog.csdn.net/kjh2007abc/article/details/90554099  
