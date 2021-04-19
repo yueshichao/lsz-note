@@ -1,6 +1,8 @@
 > 参考：
 > [Redis cluster tutorial](https://redis.io/topics/cluster-tutorial)
 
+# 配置方式1
+
 注意事项：  
 - Redis Cluster至少需要**六个**实例  
 - Redis Cluster需要开放**消息总线端口**  
@@ -109,3 +111,62 @@ redis-cli --cluster create --cluster-replicas 1 192.168.159.129:6371 192.168.159
 > 今天太晚了，下次再看看，以下几篇博客待参考：  
 > https://blog.csdn.net/weixin_41826563/article/details/80549323  
 > https://blog.csdn.net/kjh2007abc/article/details/90554099  
+
+# 配置方式2
+
+不用加配置文件，编排服务时，修改启动参数  
+`docker-composed.yml`文件
+```yml
+version: '2'
+services:
+  redis1:
+    image: redis
+    container_name: redis1
+    network_mode: "host"
+    ports:
+      - "6371:6371"
+      - "16371:16371"
+    command: redis-server --port 6371 --pidfile /redis_6371.pid --cluster-enabled yes --cluster-config-file nodes-6371.conf
+  redis2:
+    image: redis
+    container_name: redis2
+    network_mode: "host"
+    ports:
+      - "6372:6372"
+      - "16372:16372"
+    command: redis-server --port 6372 --pidfile /redis_6372.pid --cluster-enabled yes --cluster-config-file nodes-6372.conf
+  redis3:
+    image: redis
+    container_name: redis3
+    network_mode: "host"
+    ports:
+      - "6373:6373"
+      - "16373:16373"
+    command: redis-server --port 6373 --pidfile /redis_6373.pid --cluster-enabled yes --cluster-config-file nodes-6373.conf
+  redis4:
+    image: redis
+    container_name: redis4
+    network_mode: "host"
+    ports:
+      - "6374:6374"
+      - "16374:16374"
+    command: redis-server --port 6374 --pidfile /redis_6374.pid --cluster-enabled yes --cluster-config-file nodes-6374.conf
+  redis5:
+    image: redis
+    container_name: redis5
+    network_mode: "host"
+    ports:
+      - "6375:6375"
+      - "16375:16375"
+    command: redis-server --port 6375 --pidfile /redis_6375.pid --cluster-enabled yes --cluster-config-file nodes-6375.conf
+  redis6:
+    image: redis
+    container_name: redis6
+    network_mode: "host"
+    ports:
+      - "6376:6376"
+      - "16376:16376"
+    command: redis-server --port 6376 --pidfile /redis_6376.pid --cluster-enabled yes --cluster-config-file nodes-6376.conf
+```
+
+除了不用写6个配置文件，其他步骤与方式1一致  
