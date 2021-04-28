@@ -158,6 +158,32 @@ sentinel leader-epoch mymaster 1
 
 > 还有部分命令没写出来，例如set的交集并集操作，有序集合的按分数删除，按排名删除等...
 
+## 地理位置
+
+> [Redis GEO地理位置学习](https://www.cnblogs.com/linjiqin/p/12857952.html)
+>
+> [Redis GEO & 实现原理深度分析](https://juejin.cn/post/6844903772984967182)
+>
+> [GeoHash核心原理解析](https://www.cnblogs.com/LBSer/p/3310455.html)
+
+已知地理信息：
+
+| 地点 | 经度   | 纬度  |
+| ---- | ------ | ----- |
+| 上海 | 121.47 | 31.23 |
+| 北京 | 116.40 | 39.90 |
+| 南京 | 118.78 | 32.07 |
+
+
+
+| 命令                                         | 说明                                                      |
+| :------------------------------------------- | --------------------------------------------------------- |
+| geoadd city 121.47 32.23 shanghai            | 加入地理位置shanghai到city中                              |
+| geopos city shanghai                         | 获取shanghai地理位置                                      |
+| geodist city beijing shanghai                | 计算beijing和shanghai的距离，默认单位m                    |
+| georadius city 121.47 32.23 1000 km withdist | 以经度121.47，纬度32.23为圆心，1000KM为半径的地理位置信息 |
+| zrem city nanjing                            | 删除地理位置（因为是通过zset实现的）                      |
+| geohash city shanghai                        | 获取地理位置的geohash                                     |
 
 
 
