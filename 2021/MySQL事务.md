@@ -1,7 +1,9 @@
-> 参考：[跟面试官侃半小时MySQL事务，说完原子性、一致性、持久性的实现](https://zhuanlan.zhihu.com/p/129860691)  
+> 参考：
+> [跟面试官侃半小时MySQL事务，说完原子性、一致性、持久性的实现](https://zhuanlan.zhihu.com/p/129860691)  
 > [我以为我对Mysql事务很熟，直到我遇到了阿里面试官](https://zhuanlan.zhihu.com/p/148035779)  
-> [关于脏读,不可重复读,幻读.](https://zhuanlan.zhihu.com/p/66016870)
-> [Innodb中的事务隔离级别和锁的关系](https://tech.meituan.com/2014/08/20/innodb-lock.html)
+> [关于脏读,不可重复读,幻读.](https://zhuanlan.zhihu.com/p/66016870)  
+> [Innodb中的事务隔离级别和锁的关系](https://tech.meituan.com/2014/08/20/innodb-lock.html)  
+> [快照读、当前读和MVCC](https://www.cnblogs.com/AlmostWasteTime/p/11466520.html)  
 
 # 事务四大特性ACID：
 
@@ -37,16 +39,26 @@ Redo log
 
 3. 串行化(SERIALIZABLE)
 
+## Innodb实现RR
+读提交简称RC，可重复读简称RR  
+
+MySQL在**RR级别**的事务中解决**幻读**问题使用了两种方式：
+1. 多版本并发控制 MVCC
+2. 邻键锁（next-key lock） = 行锁 + 间隙锁（gap lock）
+
+MVCC是为了实现**快照读**
+
+> 读取的是历史版本的数据
+
+间隙锁是为了实现**当前读**
+
+> 修改数据时就需要当前读，因为在历史版本上修改数据也没有意义，此时就会加上间隙锁，所谓间隙锁，可以理解为粒度更小的表锁，锁住的是在本次事务中可能涉及到当前读的行范围。
+
+
+
 # MySQL的锁机制
 
-- 读锁/共享锁
-- 写锁/排他锁
+- 读锁/共享锁、写锁/排他锁
 - 间隙锁
-- 表锁
-
-读未提交、读提交的问题，都可以通过行锁解决。  
-可重复读的问题可以加表锁解决。  
-加锁可能产生死锁，此时可以通过串行化结局。  
-> 读取时加读锁（共享锁），更新时加写锁（独占锁）。  
-
-# MVCC
+- 表锁、行锁
+- 意向锁
