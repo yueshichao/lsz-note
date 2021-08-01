@@ -92,8 +92,11 @@
 - git config --global user.name lsz # 设置提交用户名
 
 - git mv file.txt File.txt # git修改文件名大小写
-> 参考：https://www.cnblogs.com/samwang88/p/6611947.html
-> git默认大小写不敏感，要修改文件大小写可以使用这种方式
+> 参考：https://www.cnblogs.com/samwang88/p/6611947.html  
+> git默认大小写不敏感，要修改文件大小写可以使用这种方式  
+
+- git config --global http.proxy socks5://127.0.0.1:1080 # 设置全局代理
+> 参考：https://blog.csdn.net/default7/article/details/100068256  
 
 
 ## 恢复已被删除的本地分支
