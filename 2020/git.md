@@ -28,6 +28,13 @@
   2. git push origin :old_branch # 删除老分支
   3. git push origin new_branch # 将改名后的分支push到远程
 
+### origin操作
+
+- git remote rm origin # 删除远程地址
+
+- git remote add origin <url> # 设置远程地址
+
+
 ## 子项目
 > 主项目目录下的.gitmodules文件中包含了submodule的信息  
 子项目更新，主项目并不会随之更新，因为主项目指向了当时的子项目的引用
