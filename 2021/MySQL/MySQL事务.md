@@ -1,9 +1,10 @@
-> 参考：
+> 参考：  
 > [跟面试官侃半小时MySQL事务，说完原子性、一致性、持久性的实现](https://zhuanlan.zhihu.com/p/129860691)  
 > [我以为我对Mysql事务很熟，直到我遇到了阿里面试官](https://zhuanlan.zhihu.com/p/148035779)  
 > [关于脏读,不可重复读,幻读.](https://zhuanlan.zhihu.com/p/66016870)  
 > [Innodb中的事务隔离级别和锁的关系](https://tech.meituan.com/2014/08/20/innodb-lock.html)  
 > [快照读、当前读和MVCC](https://www.cnblogs.com/AlmostWasteTime/p/11466520.html)  
+> 《MySQL技术内幕  InnoDB存储引擎》  
 
 # 事务四大特性ACID：
 
@@ -15,8 +16,12 @@
 # 实现原理：
 InnoDB基于**Redo log**和**Undo log**实现事务  
 Redo记录修改后的值，Undo记录修改前的值  
-当发生crash后，如果事务A已经提交，通过Redo恢复事务的执行，如果事务B未提交，通过Undo回滚数据  
-Redo log
+**当发生crash后，如果在binlog中事务A已经提交，通过Redo恢复事务的执行，如果事务B未提交，通过Undo回滚数据**    
+
+redo恢复提交事务修改后的页操作，undo回滚行记录到某个特定版本  
+redo记录数据页（物理存储结构）的修改，undo记录数据行（逻辑结构SQL语句）的修改，undo也用于实现MVCC  
+
+
 
 # 事务隔离级别：
 读未提交（READ UNCOMMITTED）、读提交 （READ COMMITTED）、可重复读 （REPEATABLE READ）、串行化 （SERIALIZABLE）。
