@@ -778,3 +778,22 @@ C c = main.new C();
 ```
 
 
+## javadoc
+
+### 根据第三方source-jar包生成javadoc
+
+> 参考：  
+> https://tianmingxing.com/2019/07/16/%E4%BB%8E%E6%BA%90%E7%A0%81JAR%E5%8C%85%E4%B8%AD%E7%94%9F%E6%88%90javadocHTML%E9%A1%B5%E9%9D%A2/  
+
+
+```sh
+
+# 解压源码jar包  
+jar vxf ./mockito-core-2.15.0-sources.jar  
+# -d参数：解析的doc目录，-sourcepath：解压后的源码文件  
+javadoc -d ~/code/tmp/mockito_doc -sourcepath ~/code/tmp/mockito -subpackages org.mockito  
+
+```
+
+源码文件可以从IDEA上download，但存储位置不一定是maven仓库  
+可以去打开IDEA，从 **project structure** 中，找到 **libraries** 选项卡，找到需要的jar的source所在目录  

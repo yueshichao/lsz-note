@@ -1,10 +1,11 @@
 > 参考：  
+> 《MySQL技术内幕  InnoDB存储引擎》  
 > [跟面试官侃半小时MySQL事务，说完原子性、一致性、持久性的实现](https://zhuanlan.zhihu.com/p/129860691)  
 > [我以为我对Mysql事务很熟，直到我遇到了阿里面试官](https://zhuanlan.zhihu.com/p/148035779)  
 > [关于脏读,不可重复读,幻读.](https://zhuanlan.zhihu.com/p/66016870)  
 > [Innodb中的事务隔离级别和锁的关系](https://tech.meituan.com/2014/08/20/innodb-lock.html)  
-> [快照读、当前读和MVCC](https://www.cnblogs.com/AlmostWasteTime/p/11466520.html)  
-> 《MySQL技术内幕  InnoDB存储引擎》  
+> [快照读、当前读和MVCC](https://www.cnblogs.com/AlmostWasteTime/p/11466520.html)   
+
 
 # 事务四大特性ACID：
 

@@ -108,3 +108,10 @@
 
 </build>
 ```
+
+
+## Maven 父子项目同时更改版本号
+
+- mvn versions:set -DnewVersion=0.0.1-SNAPSHOT
+
+- mvn versions:commit

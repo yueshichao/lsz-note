@@ -94,9 +94,21 @@ alter table table_pre rename as table_now
 ```
 
 ## 2020-04-27
-- 复制表数据
-  - insert into table_copy select * from table_old; # 要求table_copy表必须存在
-  - create table table_copy (select * from table_old); # mysql不支持select * into table_copy from table_old
+### 复制表数据
+
+#### create table
+- create table table_copy (select * from table_old); # mysql不支持select * into table_copy from table_old
+> 有时会返回：Mysql Statement violates GTID consistency
+> 解决参考：https://blog.csdn.net/loveshunyi/article/details/90209333
+> SET @@GLOBAL.ENFORCE_GTID_CONSISTENCY = off;
+> 但可能会有权限问题，第二种复制表方式也是可行的
+
+#### create table like
+
+- create table table_copy like table_old;
+- insert into table_copy select * from table_old; # 要求table_copy表必须存在
+
+
 
 ## 2020-05-08
 ### 1
