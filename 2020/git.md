@@ -76,6 +76,7 @@
 - git rm --cached fileName # 将暂存区文件删除(如果是文件夹，需要加上 `-rf` 参数)
 
 ## 标签tag
+> 参考：[git 如何同步本地、远程的分支和tag信息](https://blog.csdn.net/wei371522/article/details/83186077)  
 
 - git tag v1.0 # 轻量级tag
 
@@ -88,6 +89,15 @@
 - [删除所有tag](https://www.cnblogs.com/kiancyc/p/13936890.html)
   - git push origin --delete $(git tag -l) # 删除所有服务器端的tag
   - git tag -d $(git tag -l) # 删除所有本地tag
+
+- git ls-remote --tags origin # 查询所有远程tag
+
+- git fetch origin tagName # 拉取远程指定tag
+
+示例，拉取redis指定tag
+```bash
+git clone --branch 6.0 --depth=1 https://github.com/redis/redis.git
+```
 
 - 回退到某tag
     - git show tag-v1.0 # 找到该tag对应的commit id
@@ -105,6 +115,9 @@
 - git config --global http.proxy socks5://127.0.0.1:1080 # 设置全局代理
 > 参考：https://blog.csdn.net/default7/article/details/100068256  
 
+- git clean -fd
+> 参考：[git删除未跟踪文件](https://blog.csdn.net/uhippo/article/details/46365737)  
+
 
 ## 恢复已被删除的本地分支
 
@@ -114,9 +127,13 @@
 
 ## [配置多个ssh-key](https://www.jianshu.com/p/d6c6f37fb4f1)
 1. 假设已有一个ssh-key存在，文件位置：`~\.ssh\id_rsa`
+
 2. ssh-keygen -t rsa -C "你的邮箱@xxx.com" # 生成第二个
-> 选择文件保存位置： D:\KIT\ssh-key\id_rsa
-3. 进入git安装目录，修改目录下的etc/ssh/ssh_config文件，新增两个Host配置，指定访问哪个git服务器，用哪个文件夹的ssh-key
+
+> 选择文件保存位置： D:\KIT\ssh-key\id_rsa  
+
+3. 进入git安装目录，修改目录下的etc/ssh/ssh_config文件，新增两个Host配置，指定访问哪个git服务器，用哪个文件夹的ssh-key  
+
 ```conf
 Host gitlab.com
     HostName gitlab.com

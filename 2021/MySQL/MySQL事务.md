@@ -60,11 +60,46 @@ MVCC是为了实现**快照读**
 
 > 修改数据时就需要当前读，因为在历史版本上修改数据也没有意义，此时就会加上间隙锁，所谓间隙锁，可以理解为粒度更小的表锁，锁住的是在本次事务中可能涉及到当前读的行范围。
 
-
-
 # MySQL的锁机制
 
 - 读锁/共享锁、写锁/排他锁
 - 间隙锁
 - 表锁、行锁
 - 意向锁
+
+
+# MySQL事务语句
+> 参考：  
+> [MySQL查看和修改事务隔离级别](http://c.biancheng.net/view/7266.html)  
+>   
+
+
+```sql
+-- 查看事务隔离级别
+show variables like '%tx_isolation%';
+
+-- 查看自动提交
+SHOW VARIABLES LIKE '%AUTOCOMMIT%';
+
+-- 取消自动提交
+set @@autocommit = 0;
+
+-- 开启事务
+begin;
+
+-- mysql8变量名换成了transaction_isolation
+-- 查看全局事务隔离级别
+SELECT @@global.tx_isolation;
+-- 设置当前事务隔离级别
+SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
+-- 查看当前事务隔离级别
+SELECT @@session.tx_isolation;
+
+
+-- sql
+insert into test_table(`id`) values (1);
+
+rollback;
+
+-- set @@autocommit = 1;
+```

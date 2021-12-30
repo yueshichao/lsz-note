@@ -115,3 +115,14 @@
 - mvn versions:set -DnewVersion=0.0.1-SNAPSHOT
 
 - mvn versions:commit
+
+
+## 跳过某pom打包的配置
+
+```xml
+
+<properties>
+    <maven.deploy.skip>true</maven.deploy.skip>
+</properties>
+
+```
