@@ -172,3 +172,11 @@ target/*
 .idea/*
 *.iml
 ```
+
+# 设置IDEA使git不追踪指定文件
+> 参考：[IDEA忽略文件，防止git提交不想提交的文件](https://my.oschina.net/u/4395893/blog/3318210)  
+
+首先，将文件从暂存区移除，IDEA里文件颜色应该是红色（未被add到git暂存区）  
+在Version Control选项卡中右键，选择ignore，我选择的仅ignore该文件  
+
+> 谨以此方式以及记录表达公司（小组成员）不让我创建application-local.yml文件的愤怒😡！  
