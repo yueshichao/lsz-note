@@ -28,6 +28,8 @@
   2. git push origin :old_branch # 删除老分支
   3. git push origin new_branch # 将改名后的分支push到远程
 
+- git branch -r --contains commit-id # 查看某次提交属于某个分支
+
 ### origin操作
 
 - git remote rm origin # 删除远程地址

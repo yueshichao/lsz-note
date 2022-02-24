@@ -27,3 +27,31 @@ Object result = genericService.$invoke("funcName",
         new Object[] {param});
 log.info("result = {}", result);
 ```
+
+
+# Dubbo不提供服务，只消费
+
+诉求：本地环境，只消费公司test环境服务，不对外提供服务（防止本地打断点影响test环境）  
+
+> 参考：[dubbo不提供服务只消费服务](https://blog.csdn.net/a490789580/article/details/107908655)  
+
+
+```yaml
+dubbo.registry.register: false # 不参与注册
+```
+
+```yaml
+dubbo.provider.protocol: injvm # 只消费不注册为provider
+```
+
+
+# Dubbo消费超时
+
+## Consumer fullGC引起
+> 参考：[Full GC引发的dubbo consumer端超时问题](https://blog.csdn.net/sss2951/article/details/117201396)  
+
+
+# Dubbo原理
+
+## 调用分析
+GenericFilter
