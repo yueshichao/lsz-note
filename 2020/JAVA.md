@@ -222,16 +222,75 @@ if (inheritThreadLocals && parent.inheritableThreadLocals != null)
 
 
 ## HashMap原理：
-- `static class Node<K,V> implements Map.Entry<K, V>` 是HashMap的内部类，（在key冲突不多时）用来存储信息，包括hash、key、value、next四个属性
-- `transient Node<K,V>[] table;` 是HashMap实现的本质——Hash表，数组下标就是key的hashcode，数组内容就是Node对象
-> 对象在HashMap里的位置取决于key的hashCode()以及equals()，先比较hashCode，再比较equals  
 
-> 我个人认为：hashCode()是equals()的快速比较，如果hashCode()相同，那么equals()可能相同，hashCode()不同，则equals肯定不同，有点布隆过滤器的感觉了：'False is always false'  
+- `static class Node<K,V> implements Map.Entry<K, V>` 是HashMap的内部类，（在key冲突不多时）用来存储信息，包括hash、key、value、next四个属性  
+- `transient Node<K,V>[] table;` 是HashMap实现的本质——Hash表，数组下标就是(key的hashcode & n-1)，n是数组长度，数组内容就是Node对象  
 
-equals不同，hashcode相同，会被认为是不同的对象。但如果equals相同，hashCode却不同，因比较流程（先hashCode再equals）则会被认为是不同的对象  
-所以我们要求重写equals，一定要重写hashCode，即保证equals相同时，hashCode一定相同
+### 重写equals()一定要重写hashCode()
 
-> 极端情况下，如果重写对象hashCode恒等于1，HashMap也不会出问题，只是会退化成链表。当同一结点下链表长度大于等于8时，链表转化为红黑树
+在Java中，我们约定**euqals()才是真正评判两对象是否相同的标准**，而hashCode()是equals()的**快速比较**，如果hashCode()相同，那么equals()可能相同，hashCode()不同，则equals()肯定不同，有点布隆过滤器的感觉了：'False is always false'  
+
+在容器的对象比较中，比如HashSet和HashMap，equals不同，hashcode相同，会被认为是不同的对象。但如果equals相同，hashCode却不同，因**比较流程（先hashCode再equals）**则会被认为是不同的对象  
+所以我们要求重写equals，一定要重写hashCode，即保证**equals相同时，hashCode一定相同，hashCode不同，euqals也一定不同**，反之则没必要，hashCode相同，不代表equals为true  
+
+> 极端情况下，如果重写对象hashCode恒等于1，HashMap也不会出问题，只是会退化成链表。当同一结点下链表长度大于等于8时，链表转化为红黑树  
+
+- 下面演示hashCode()不一致，equals返回true导致的Set去重失效的例子：
+```java
+@Test
+public void test() {
+    log.info("this is a test case...");
+    // hashCode
+    Dog dog1 = new Dog(1, "dog");
+    System.out.printf("dog1, hashCode = %s \n", dog1.hashCode());
+    Dog dog2 = new Dog(1, "dog");
+    System.out.printf("dog2, hashCode = %s \n", dog2.hashCode());
+
+    System.out.printf("dog1.hashCode() == dog2.hashCode() = %s  \n", dog1.hashCode() == dog2.hashCode());
+    System.out.printf("dog1.equals(dog2) = %s  \n", dog1.equals(dog2));
+    // 容器中的表现，在set和map中都无法按equals去重，因为hashCode提前判定不一致了
+    Set<Dog> set = new HashSet<>();
+    set.add(dog1);
+    set.add(dog2);
+    System.out.println("set = " + set);
+
+    Map<Dog, Integer> map = new HashMap<>();
+    map.put(dog1, 1);
+    map.put(dog2, 2);
+    System.out.println("map = " + map);
+
+}
+
+static class Dog {
+    int age;
+    String name;
+
+    public Dog(int age, String name) {
+        this.age = age;
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return "Dog{age=" + age + ", name='" + name + "\'}";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Dog dog = (Dog) o;
+        return age == dog.age &&
+                Objects.equals(name, dog.name);
+    }
+
+    // @Override
+    // public int hashCode() {
+    //     return Objects.hash(age, name);
+    // }
+
+}
+```
 
 ### 使用**EntrySet**遍历HashMap
 ```java
@@ -268,7 +327,7 @@ final Node<K,V> nextNode() {
 }
 ```
 
-### resize()扩容  
+### resize()扩容
 
 原理：oldTable 重新计算hash槽位 -> newTable  
 为什么2倍扩容，因为hash槽位计算是是 ```(n - 1) & hash``` ，其中n是数组长度，扩容后可以使同一hash槽的元素部分移动，从而形成分布均匀的hashMap
@@ -276,6 +335,40 @@ final Node<K,V> nextNode() {
 > 例如，当前数组长度8，*(n - 1) & hash* 一式中，n = 8，n-1 = 7（二进制位111），假设两个元素的hash值的二进制表示分别为10111,11111，代入式子中，计算hash槽位：都是111，所以会串成链表，挂在111槽位下。  
 > 如果元素过多，需要扩容，table长度扩大两倍，n = 16，n-1 = 15（二进制位1111），之前两个元素hash值重新计算，重新分布，分别是0111槽位（不变）和1111槽位（该元素移动）。  
 
+### jdk1.7的头插法在1.8改为尾插法
+> [HashMap的链表成环演示](https://blog.csdn.net/insomsia/article/details/93882739)  
+> [探究HashMap线性不安全（二）——链表成环的详细过程](https://www.cnblogs.com/lonelyjay/p/9726187.html)  
+
+头插法代码：  
+```java
+void transfer(Entry[] newTable, boolean rehash) {
+    int newCapacity = newTable.length;
+    //遍历table数组中键值对链
+    for (Entry<K,V> e : table) {
+        //遍历键值对e链上的所有键值对，当e指向null时结束
+        while(null != e) {
+            Entry<K,V> next = e.next;//断点一
+            //通常rehash为false，不会重新计算键值对key的hash值
+            if (rehash) {
+                e.hash = null == e.key ? 0 : hash(e.key);
+            }
+            //根据扩容后的table数组长度计算键值对的index
+            int i = indexFor(e.hash, newCapacity);
+            //头插法，将后遍历的键值对存到链条的头部
+            e.next = newTable[i];
+            newTable[i] = e;
+            //链条中的下一个键值对继续执行while循环。
+            e = next;
+        }
+    }
+}
+```
+
+```
+a->null
+线程1：table[i] = a -> null
+线程2：a -> table[i] = a
+```
 
 ## [synchronized](https://juejin.im/post/6854573221258199048)
 1. 作用于方法、代码块
