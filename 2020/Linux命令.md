@@ -12,7 +12,7 @@
 ## 磁盘
 - df -h # 查看磁盘信息
 
-### 文件
+## 文件
 - find
  - find / -name "fileName"
 
@@ -23,6 +23,16 @@
   - du -sh fileName # 当前文件大小
 
 - ping 127.0.0.1 | tee ping.log # 执行任务并把输出保存到文件中
+
+- tar
+  - tar -tf test.tar.gz # 查看内容
+  - tar -czvf test.tar.gz a.c # 压缩文件
+  - tar -xzvf test.tar.gz # 解压文件
+
+### nc
+- 文件传输
+  - nc -l -p 9995 > file.txt # 接收端
+  - nc r receiveIP 9995 -q 0 < file.txt # 发送端
 
 # 其他IO设备
 ## 网络

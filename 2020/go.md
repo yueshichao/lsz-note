@@ -122,7 +122,7 @@ func main() {
 
 ## 切片
 ```go
-var a = [10]int{3: 3, 5: 5, 9: 9}
+	var a = [10]int{3: 3, 5: 5, 9: 9}
 	fmt.Println(a)
 	// 切片，在数组a上，截取[3,7)区间的元素，构成切片返回给slice1。
 	// 数据不是拷贝，slice1指针指向a[3]内存区域，因为改变a[3]的值，slice1[0]的值也变了
@@ -222,6 +222,15 @@ var a = [10]int{3: 3, 5: 5, 9: 9}
 	fmt.Println(map0)
 ```
 
+多级map
+```go
+func main() {
+	m := make(map[string]map[string]int)
+	m["1"] = map[string]int{"2": 3}
+	println(m["1"]["2"])
+}
+```
+
 ## list
 ```go
 	// 初始化list
@@ -249,3 +258,384 @@ var a = [10]int{3: 3, 5: 5, 9: 9}
 ```
 
 
+### 控制、循环
+
+循环语句
+```go
+for i := 0; i < 10; i++ {
+	sum += i
+}
+// while
+for sum < 1000 {
+	sum += sum
+}
+// 无限循环
+for {
+}
+```
+
+控制语句
+```go
+if x < 0 {
+	return sqrt(-x) + "i"
+}
+// 条件判断前可执行简单语句
+if v := math.Pow(x, n); v < lim {
+	return v
+}
+// switch case
+switch os := runtime.GOOS; os {
+case "darwin":
+	fmt.Println("OS X.")
+case "linux":
+	fmt.Println("Linux.")
+default:
+	// freebsd, openbsd,
+	// plan9, windows...
+	fmt.Printf("%s.\n", os)
+}
+// switch case 代替 if then else
+t := time.Now()
+switch {
+case t.Hour() < 12:
+	fmt.Println("Good morning!")
+case t.Hour() < 17:
+	fmt.Println("Good afternoon.")
+default:
+	fmt.Println("Good evening.")
+}
+
+```
+
+# defer
+
+```go
+func main() {
+	defer fmt.Println("world")
+	fmt.Println("hello")
+}
+```
+
+
+defer函数会按顺序压入调用栈
+```go
+func main() {
+	fmt.Println("counting")
+	// 输出顺序是9876543210
+	for i := 0; i < 10; i++ {
+		defer fmt.Println(i)
+	}
+
+	fmt.Println("done")
+}
+```
+
+
+# 指针
+
+```go
+func main() {
+	i, j := 42, 2701
+
+	p := &i         // 指向 i
+	fmt.Println(*p) // 通过指针读取 i 的值
+	*p = 21         // 通过指针设置 i 的值
+	fmt.Println(i)  // 查看 i 的值
+
+	p = &j         // 指向 j
+	*p = *p / 37   // 通过指针对 j 进行除法运算
+	fmt.Println(j) // 查看 j 的值
+}
+```
+
+# 结构体
+
+```go
+type Vertex struct {
+	X int
+	Y int
+}
+
+func main() {
+	fmt.Println(Vertex{1, 2})
+}
+```
+
+结构体指针取值
+```go
+func main() {
+	v := Vertex{1, 2}
+	p := &v
+	// 严格的写法：(*p).X，但给了语法糖，可以按如下写法
+	p.X = 1e9
+	fmt.Println(v)
+}
+```
+
+各种结构体文法
+```go
+var (
+	v1 = Vertex{1, 2}  // 创建一个 Vertex 类型的结构体
+	v2 = Vertex{X: 1}  // Y:0 被隐式地赋予
+	v3 = Vertex{}      // X:0 Y:0
+	p  = &Vertex{1, 2} // 创建一个 *Vertex 类型的结构体（指针）
+)
+
+func main() {
+	fmt.Println(v1, p, v2, v3)
+}
+
+```
+
+# 函数式
+
+```go
+func compute(fn func(float64, float64) float64) float64 {
+	return fn(3, 4)
+}
+
+func main() {
+	hypot := func(x, y float64) float64 {
+		return math.Sqrt(x*x + y*y)
+	}
+	fmt.Println(hypot(5, 12))
+
+	fmt.Println(compute(hypot))
+	fmt.Println(compute(math.Pow))
+}
+
+```
+
+## 闭包
+
+TODO 
+https://tour.go-zh.org/moretypes/25
+
+# 类型
+
+## 类型断言
+
+```go
+func main() {
+	var i interface{} = "hello"
+
+	s := i.(string)
+	fmt.Println(s)
+
+	s, ok := i.(string)
+	fmt.Println(s, ok)
+
+	f, ok := i.(float64)
+	fmt.Println(f, ok)
+
+	f = i.(float64) // 报错(panic)
+	fmt.Println(f)
+}
+```
+
+## 类型选择
+
+```go
+switch v := i.(type) {
+case T:
+    // v 的类型为 T
+case S:
+    // v 的类型为 S
+default:
+    // 没有匹配，v 与 i 的类型相同
+}
+```
+
+## 重写Stringer接口
+
+```go
+type IPAddr [4]byte
+
+// TODO: 给 IPAddr 添加一个 "String() string" 方法
+func (ip IPAddr) String() string {
+	return fmt.Sprintf("%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3])
+}
+
+func main() {
+	hosts := map[string]IPAddr{
+		"loopback":  {127, 0, 0, 1},
+		"googleDNS": {8, 8, 8, 8},
+	}
+	for name, ip := range hosts {
+		fmt.Printf("%v: %v\n", name, ip)
+	}
+}
+```
+
+
+## 重写error
+```go
+package main
+
+import (
+	"fmt"
+	"math"
+)
+// 定义error
+type ErrNegativeSqrt float64
+// 重写error输出
+func (e ErrNegativeSqrt) Error() string {
+	return fmt.Sprintf("cannot Sqrt negative number: %f", e)
+}
+// 返回error
+func Sqrt(x float64) (float64, error) {
+	if x < 0 {
+		return x, ErrNegativeSqrt(x)
+	}
+	return math.Sqrt(x), nil
+}
+
+func main() {
+	fmt.Println(Sqrt(2))
+	fmt.Println(Sqrt(-2))
+}
+
+```
+
+
+# Reader
+
+TODO 
+
+
+# go程
+
+
+# 信道
+
+
+// TODO 这句话什么意思？
+默认情况下，发送和接收操作在另一端准备好之前都会阻塞。这使得 Go 程可以在没有显式的锁或竞态变量的情况下进行同步。
+
+```go
+
+func sum(s []int, c chan int) {
+	sum := 0
+	for _, v := range s {
+		sum += v
+	}
+	c <- sum // 将和送入 c
+}
+
+func main() {
+	s := []int{7, 2, 8, -9, 4, 0}
+
+	c := make(chan int)
+	go sum(s[:len(s)/2], c)
+	go sum(s[len(s)/2:], c)
+	x, y := <-c, <-c // 从 c 中接收
+
+	fmt.Println(x, y, x+y)
+}
+
+```
+
+缓冲区满，发生死锁：`all goroutines are asleep - deadlock!`
+```go
+func main() {
+	ch := make(chan int, 1)
+	ch <- 1
+	ch <- 2
+	fmt.Println(<-ch)
+	fmt.Println(<-ch)
+}
+
+```
+
+## select
+
+TODO 阻塞到某个分支可以执行为止
+
+
+## Ticker
+
+```go
+func testTicker() {
+	ticker := time.NewTicker(1 * time.Second)
+	i := uint64(1)
+	for range ticker.C {
+		fmt.Println(i)
+		i = atomic.AddUint64(&i, 1)
+	}
+	fmt.Println("end...")
+}
+
+```
+
+# 协程
+
+
+## WaitGroup
+
+```go
+import (
+	"fmt"
+	"strconv"
+	"sync"
+)
+
+var cnt = 0
+
+func f(wait *sync.WaitGroup) {
+	cnt++
+	fmt.Println("f" + strconv.Itoa(cnt))
+	wait.Done()
+}
+
+func main() {
+	var wait sync.WaitGroup
+	for i := 0; i < 10; i++ {
+		wait.Add(1)
+		go f(&wait)
+	}
+	wait.Wait()
+	fmt.Println("all end...")
+}
+```
+
+# WEB服务器
+
+```go
+func main() {
+	http.HandleFunc("/", sayHello)
+	err := http.ListenAndServe(":9090", nil) // 设置监听的端口
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func sayHello(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hello!")
+}
+```
+
+通过curl测试
+```bash
+curl "http://127.0.0.1:9090/"
+```
+
+# 序列化
+
+## json
+
+```go
+func testJson() {
+	cat := Cat{Name: "cat", Dog: Dog{
+		Age: 1,
+	}}
+	bs, _ := json.Marshal(cat)
+	jsonStr := string(bs)
+	fmt.Printf("json = %v\n", jsonStr)
+
+	var cat1 Cat
+	bytes := []byte(jsonStr)
+	_ = json.Unmarshal(bytes, &cat1)
+	fmt.Printf("struct = %v\n", cat1)
+}
+
+```

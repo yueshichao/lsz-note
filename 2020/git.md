@@ -93,6 +93,8 @@
     - git show tag-v1.0 # 找到该tag对应的commit id
     - git reset --hard commit-id # 回退到该版本
 
+- git tag -l 'v1.2.*' # 匹配表达式的tag
+
 ## 其他
 - git status # 本地工作区状态
 
