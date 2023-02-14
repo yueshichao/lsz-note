@@ -1,4 +1,4 @@
-# 版本管理git
+# 基本命令
 ![git](./img/git.png)
 ## 分支
 - git branch # 查看本地分支
@@ -157,3 +157,36 @@ target/*
 .idea/*
 *.iml
 ```
+
+# 常见用法
+
+## 查看某人某段时间内的提交
+
+> [git查看某人某段时间的代码提交](https://www.jianshu.com/p/ee976eb939bb)  
+
+git log --since=2022-09-22 --until=2022-09-23
+--format='%aN' | sort -u | while read name; do echo -en "$name\t"; git log --author="$name" --pretty=tformat: --numstat | awk '{ add += $1; subs += $2; loc += $1 + $2 } END { printf "added lines: %s, removed lines: %s, total lines: %s\n", add, subs, loc }' -; done
+
+
+git log --since=2022-09-22 --until=2022-09-23 --author="leshizhao" --pretty=tformat: --numstat | awk '{ add += $1 ; subs += $2 ; loc += $1 - $2 } END { printf "added lines: %s removed lines : %s total lines: %s\n",add,subs,loc }' -
+
+git log --since=2022-09-01 --until=2022-09-23 --pretty=format:"%h - %an, %ar : %s" | grep 'lsz'
+
+
+
+
+# git报错
+
+## Another git process seems to be running in this repository
+
+```log
+Another git process seems to be running in this repository, e.g.
+        an editor opened by 'git commit'. Please make sure all processes
+        are terminated then try again. If it still fails, a git process
+        may have crashed in this repository earlier:
+        remove the file manually to continue.
+```
+
+rm -f .git/index.lock
+
+如果是go mod编译出现此问题，可执行 go clean --modcache

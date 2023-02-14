@@ -5,3 +5,7 @@
 
 go mod why -m 'pkg.name'
 
+
+## 清理本地依赖包缓存
+
+go clean --modcache
